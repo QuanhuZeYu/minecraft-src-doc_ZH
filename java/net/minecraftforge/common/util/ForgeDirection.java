@@ -2,26 +2,26 @@ package net.minecraftforge.common.util;
 
 public enum ForgeDirection
 {
-    /** -Y */
+    /** -Y 0*/
     DOWN(0, -1, 0),
 
-    /** +Y */
+    /** +Y 1*/
     UP(0, 1, 0),
 
-    /** -Z */
+    /** -Z 2*/
     NORTH(0, 0, -1),
 
-    /** +Z */
+    /** +Z 3*/
     SOUTH(0, 0, 1),
 
-    /** -X */
+    /** -X 4*/
     WEST(-1, 0, 0),
 
-    /** +X */
+    /** +X 5*/
     EAST(1, 0, 0),
 
     /**
-     * Used only by getOrientation, for invalid inputs
+     * 仅由 getOrientation 用于无效输入 6
      */
     UNKNOWN(0, 0, 0);
 
@@ -33,13 +33,13 @@ public enum ForgeDirection
     public static final int[] OPPOSITES = {1, 0, 3, 2, 5, 4, 6};
     // Left hand rule rotation matrix for all possible axes of rotation
     public static final int[][] ROTATION_MATRIX = {
-        {0, 1, 4, 5, 3, 2, 6},
-        {0, 1, 5, 4, 2, 3, 6},
-    	{5, 4, 2, 3, 0, 1, 6},
-    	{4, 5, 2, 3, 1, 0, 6},
-    	{2, 3, 1, 0, 4, 5, 6},
-    	{3, 2, 0, 1, 4, 5, 6},
-    	{0, 1, 2, 3, 4, 5, 6},
+        {0, 1, 4, 5, 3, 2, 6}, // -y y -x x z -z
+        {0, 1, 5, 4, 2, 3, 6}, // y -y x -x -z z
+    	{5, 4, 2, 3, 0, 1, 6}, // x -x -z z -y y
+    	{4, 5, 2, 3, 1, 0, 6}, // -x x z -z y -y
+    	{2, 3, 1, 0, 4, 5, 6}, // -z z y -y -x x
+    	{3, 2, 0, 1, 4, 5, 6}, // z -z -y y -x x
+    	{0, 1, 2, 3, 4, 5, 6}, // -y y -z z -x x
     };
 
     private ForgeDirection(int x, int y, int z)

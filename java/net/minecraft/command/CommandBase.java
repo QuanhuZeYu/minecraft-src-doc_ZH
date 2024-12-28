@@ -374,9 +374,9 @@ public abstract class CommandBase implements ICommand
     }
 
     /**
-     * Gets the Block specified by the given text string.  First checks the block registry, then tries by parsing the
-     * string as an integer ID (deprecated).  Warns the sender if we matched by parsing the ID.  Throws if the block
-     * wasn't found.  Returns the block if it was found.
+     * 获取由给定文本字符串指定的块。  首先检查块注册表，然后尝试解析
+     * 整数 ID 形式的字符串（已弃用）。  如果我们通过解析 ID 进行匹配，则警告发件人。  如果阻塞则抛出
+     * 没有找到。  如果找到则返回该块。
      */
     public static Block getBlockByText(ICommandSender sender, String id)
     {
