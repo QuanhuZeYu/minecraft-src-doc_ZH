@@ -2,24 +2,29 @@ package net.minecraft.world;
 
 public class ChunkCoordIntPair
 {
-    /** The X position of this Chunk Coordinate Pair */
+    /** 该块坐标对的 X 位置 */
     public final int chunkXPos;
-    /** The Z position of this Chunk Coordinate Pair */
+    /** 该块坐标对的 Z 位置 */
     public final int chunkZPos;
     private static final String __OBFID = "CL_00000133";
 
-    public ChunkCoordIntPair(int p_i1947_1_, int p_i1947_2_)
+    public ChunkCoordIntPair(int x, int z)
     {
-        this.chunkXPos = p_i1947_1_;
-        this.chunkZPos = p_i1947_2_;
+        this.chunkXPos = x;
+        this.chunkZPos = z;
     }
 
     /**
-     * converts a chunk coordinate pair to an integer (suitable for hashing)
+     * 将块坐标对转换为整数（适合散列）
      */
-    public static long chunkXZ2Int(int p_77272_0_, int p_77272_1_)
+    public static long chunkXZ2Int(int x, int z)
     {
-        return (long)p_77272_0_ & 4294967295L | ((long)p_77272_1_ & 4294967295L) << 32;
+        /*
+          将 x 和 z 分别转换为无符号的32位整数。
+          将 z 左移32位，确保它占据高32位。
+          将 x 和左移后的 z 进行按位或运算，组合成一个64位整数。
+         */
+        return (long)x & 4294967295L | ((long)z & 4294967295L) << 32;
     }
 
     public int hashCode()
@@ -29,19 +34,19 @@ public class ChunkCoordIntPair
         return i ^ j;
     }
 
-    public boolean equals(Object p_equals_1_)
+    public boolean equals(Object chunkCoordIntPair)
     {
-        if (this == p_equals_1_)
+        if (this == chunkCoordIntPair)
         {
             return true;
         }
-        else if (!(p_equals_1_ instanceof ChunkCoordIntPair))
+        else if (!(chunkCoordIntPair instanceof ChunkCoordIntPair))
         {
             return false;
         }
         else
         {
-            ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair)p_equals_1_;
+            ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair)chunkCoordIntPair;
             return this.chunkXPos == chunkcoordintpair.chunkXPos && this.chunkZPos == chunkcoordintpair.chunkZPos;
         }
     }
@@ -56,9 +61,9 @@ public class ChunkCoordIntPair
         return (this.chunkZPos << 4) + 8;
     }
 
-    public ChunkPosition func_151349_a(int p_151349_1_)
+    public ChunkPosition func_151349_a(int pairInt)
     {
-        return new ChunkPosition(this.getCenterXPos(), p_151349_1_, this.getCenterZPosition());
+        return new ChunkPosition(this.getCenterXPos(), pairInt, this.getCenterZPosition());
     }
 
     public String toString()

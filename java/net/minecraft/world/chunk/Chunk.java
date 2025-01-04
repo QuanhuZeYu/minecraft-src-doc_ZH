@@ -112,11 +112,11 @@ public class Chunk
         Arrays.fill(this.blockBiomeArray, (byte) - 1);
     }
 
-    public Chunk(World p_i45446_1_, Block[] p_i45446_2_, int p_i45446_3_, int p_i45446_4_)
+    public Chunk(World world, Block[] blocks, int x, int z)
     {
-        this(p_i45446_1_, p_i45446_3_, p_i45446_4_);
-        int k = p_i45446_2_.length / 256;
-        boolean flag = !p_i45446_1_.provider.hasNoSky;
+        this(world, x, z);
+        int k = blocks.length / 256;
+        boolean flag = !world.provider.hasNoSky;
 
         for (int l = 0; l < 16; ++l)
         {
@@ -124,7 +124,7 @@ public class Chunk
             {
                 for (int j1 = 0; j1 < k; ++j1)
                 {
-                    Block block = p_i45446_2_[l << 11 | i1 << 7 | j1];
+                    Block block = blocks[l << 11 | i1 << 7 | j1];
 
                     if (block != null && block.getMaterial() != Material.air)
                     {

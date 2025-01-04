@@ -314,103 +314,122 @@ public class WorldServer extends World
         this.worldInfo.setSpawnZ(j);
     }
 
-    protected void func_147456_g()
-    {
+    protected void func_147456_g() {
+        // 调用父类的方法，可能包含基本的定时更新逻辑。
         super.func_147456_g();
-        int i = 0;
-        int j = 0;
-        Iterator iterator = this.activeChunkSet.iterator();
 
-        while (iterator.hasNext())
-        {
-            ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair)iterator.next();
-            int k = chunkcoordintpair.chunkXPos * 16;
-            int l = chunkcoordintpair.chunkZPos * 16;
+        // 统计变量，记录触发随机 tick 的方块数量。
+        int blockTickCounter = 0; // 随机更新的方块数量
+        int tickCounter = 0; // 总的随机 tick 操作次数
+
+        // 遍历所有需要处理的活动区块集。
+        Iterator<ChunkCoordIntPair> iterator = this.activeChunkSet.iterator();
+
+        while (iterator.hasNext()) {
+            // 获取当前区块的坐标对。
+            ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair) iterator.next();
+            int worldX = chunkcoordintpair.chunkXPos * 16; // 区块 X 坐标转换为世界坐标。
+            int worldZ = chunkcoordintpair.chunkZPos * 16; // 区块 Z 坐标转换为世界坐标。
+
+            // 性能分析器开始记录“获取区块”部分的性能。
             this.theProfiler.startSection("getChunk");
+
+            // 根据区块坐标获取具体的区块对象。
             Chunk chunk = this.getChunkFromChunkCoords(chunkcoordintpair.chunkXPos, chunkcoordintpair.chunkZPos);
-            this.func_147467_a(k, l, chunk);
+
+            // 对该区块执行自定义操作。
+            this.func_147467_a(worldX, worldZ, chunk);
+
+            // 性能分析器切换到“更新区块”部分。
             this.theProfiler.endStartSection("tickChunk");
+
+            // 对区块执行 tick 操作（如更新实体状态）。
             chunk.func_150804_b(false);
+
+            // 性能分析器切换到“雷暴”部分。
             this.theProfiler.endStartSection("thunder");
-            int i1;
-            int j1;
-            int k1;
-            int l1;
 
-            if (provider.canDoLightning(chunk) && this.rand.nextInt(100000) == 0 && this.isRaining() && this.isThundering())
-            {
-                this.updateLCG = this.updateLCG * 3 + 1013904223;
-                i1 = this.updateLCG >> 2;
-                j1 = k + (i1 & 15);
-                k1 = l + (i1 >> 8 & 15);
-                l1 = this.getPrecipitationHeight(j1, k1);
+            // 雷暴逻辑：在当前区块可能随机生成闪电。
+            if (provider.canDoLightning(chunk) && this.rand.nextInt(100000) == 0 && this.isRaining() && this.isThundering()) {
+                this.updateLCG = this.updateLCG * 3 + 1013904223; // 更新伪随机数生成器。
+                int randomInt = this.updateLCG >> 2; // 随机数。
+                int randX = worldX + (randomInt & 15); // 确定闪电的 X 坐标。
+                int randZ = worldZ + (randomInt >> 8 & 15); // 确定闪电的 Z 坐标。
+                int rainHeight = this.getPrecipitationHeight(randX, randZ); // 获取降水高度。
 
-                if (this.canLightningStrikeAt(j1, l1, k1))
-                {
-                    this.addWeatherEffect(new EntityLightningBolt(this, (double)j1, (double)l1, (double)k1));
+                // 如果当前位置可以生成闪电，则创建闪电实体。
+                if (this.canLightningStrikeAt(randX, rainHeight, randZ)) {
+                    this.addWeatherEffect(new EntityLightningBolt(this, (double) randX, (double) rainHeight, (double) randZ));
                 }
             }
 
+            // 性能分析器切换到“冰雪”部分。
             this.theProfiler.endStartSection("iceandsnow");
 
-            if (provider.canDoRainSnowIce(chunk) && this.rand.nextInt(16) == 0)
-            {
-                this.updateLCG = this.updateLCG * 3 + 1013904223;
-                i1 = this.updateLCG >> 2;
-                j1 = i1 & 15;
-                k1 = i1 >> 8 & 15;
-                l1 = this.getPrecipitationHeight(j1 + k, k1 + l);
+            // 冰雪逻辑：在当前区块可能生成冰块或雪层。
+            if (provider.canDoRainSnowIce(chunk) && this.rand.nextInt(16) == 0) {
+                this.updateLCG = this.updateLCG * 3 + 1013904223; // 更新伪随机数生成器。
+                int randomInt = this.updateLCG >> 2; // 随机数。
+                int randX = randomInt & 15; // 随机选择 X 坐标（区块内）。
+                int randZ = randomInt >> 8 & 15; // 随机选择 Z 坐标（区块内）。
+                int rainHeight = this.getPrecipitationHeight(randX + worldX, randZ + worldZ); // 获取降水高度。
 
-                if (this.isBlockFreezableNaturally(j1 + k, l1 - 1, k1 + l))
-                {
-                    this.setBlock(j1 + k, l1 - 1, k1 + l, Blocks.ice);
+                // 如果该方块可以冻结，则设置为冰块。
+                if (this.isBlockFreezableNaturally(randX + worldX, rainHeight - 1, randZ + worldZ)) {
+                    this.setBlock(randX + worldX, rainHeight - 1, randZ + worldZ, Blocks.ice);
                 }
 
-                if (this.isRaining() && this.func_147478_e(j1 + k, l1, k1 + l, true))
-                {
-                    this.setBlock(j1 + k, l1, k1 + l, Blocks.snow_layer);
+                // 如果正在下雨并且可以生成雪层，则设置为雪层。
+                if (this.isRaining() && this.func_147478_e(randX + worldX, rainHeight, randZ + worldZ, true)) {
+                    this.setBlock(randX + worldX, rainHeight, randZ + worldZ, Blocks.snow_layer);
                 }
 
-                if (this.isRaining())
-                {
-                    BiomeGenBase biomegenbase = this.getBiomeGenForCoords(j1 + k, k1 + l);
+                // 如果正在下雨，则更新方块的降雨行为。
+                if (this.isRaining()) {
+                    BiomeGenBase biomegenbase = this.getBiomeGenForCoords(randX + worldX, randZ + worldZ);
 
-                    if (biomegenbase.canSpawnLightningBolt())
-                    {
-                        this.getBlock(j1 + k, l1 - 1, k1 + l).fillWithRain(this, j1 + k, l1 - 1, k1 + l);
+                    // 如果生物群系支持闪电，则触发降雨影响。
+                    if (biomegenbase.canSpawnLightningBolt()) {
+                        this.getBlock(randX + worldX, rainHeight - 1, randZ + worldZ).fillWithRain(this, randX + worldX, rainHeight - 1, randZ + worldZ);
                     }
                 }
             }
 
+            // 性能分析器切换到“方块 tick”部分。
             this.theProfiler.endStartSection("tickBlocks");
+
+            // 获取区块中的方块存储数组（按高度分块）。
             ExtendedBlockStorage[] aextendedblockstorage = chunk.getBlockStorageArray();
-            j1 = aextendedblockstorage.length;
+            int storageCount = aextendedblockstorage.length;
 
-            for (k1 = 0; k1 < j1; ++k1)
-            {
-                ExtendedBlockStorage extendedblockstorage = aextendedblockstorage[k1];
+            // 遍历每个存储单元。
+            for (int curStorage = 0; curStorage < storageCount; ++curStorage) {
+                ExtendedBlockStorage extendedblockstorage = aextendedblockstorage[curStorage];
 
-                if (extendedblockstorage != null && extendedblockstorage.getNeedsRandomTick())
-                {
-                    for (int i3 = 0; i3 < 3; ++i3)
-                    {
-                        this.updateLCG = this.updateLCG * 3 + 1013904223;
-                        int i2 = this.updateLCG >> 2;
-                        int j2 = i2 & 15;
-                        int k2 = i2 >> 8 & 15;
-                        int l2 = i2 >> 16 & 15;
-                        ++j;
-                        Block block = extendedblockstorage.getBlockByExtId(j2, l2, k2);
+                // 如果存储单元需要随机 tick，则执行。
+                if (extendedblockstorage != null && extendedblockstorage.getNeedsRandomTick()) {
+                    for (int rand3 = 0; rand3 < 3; ++rand3) { // 每单元随机 tick 3 次。
+                        this.updateLCG = this.updateLCG * 3 + 1013904223; // 更新伪随机数生成器。
+                        int randomInt = this.updateLCG >> 2; // 随机数。
+                        // 一个chunk X Z 的范围只有16 单个ChunkStorage大小为16*16*16
+                        int randX = randomInt & 15; // 随机选择 X 坐标（区块内）。
+                        int randZ = randomInt >> 8 & 15; // 随机选择 Z 坐标（区块内）。
+                        int randY = randomInt >> 16 & 15; // 随机选择 Y 坐标（存储单元内）。
+                        ++tickCounter; // 总 tick 计数。
 
-                        if (block.getTickRandomly())
-                        {
-                            ++i;
-                            block.updateTick(this, j2 + k, l2 + extendedblockstorage.getYLocation(), k2 + l, this.rand);
+                        // 获取目标方块。
+                        Block block = extendedblockstorage.getBlockByExtId(randX, randY, randZ);
+
+                        // 如果方块需要随机 tick，则更新。
+                        if (block.getTickRandomly()) {
+                            ++blockTickCounter; // 统计随机更新的方块数量。
+                            block.updateTick(this, randX + worldX, randY + extendedblockstorage.getYLocation(), randZ + worldZ, this.rand);
                         }
                     }
                 }
             }
 
+            // 性能分析器结束当前区块的处理。
             this.theProfiler.endSection();
         }
     }
@@ -938,7 +957,7 @@ public class WorldServer extends World
     }
 
     /**
-     * adds a lightning bolt to the list of lightning bolts in this world.
+     * 在这个世界的闪电列表中添加了一个闪电。
      */
     public boolean addWeatherEffect(Entity p_72942_1_)
     {

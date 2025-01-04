@@ -98,7 +98,7 @@ public class AnvilSaveConverter extends SaveFormatOld
     }
 
     /**
-     * Returns back a loader for the specified save directory
+     * 返回指定保存目录的加载器
      */
     public ISaveHandler getSaveLoader(String p_75804_1_, boolean p_75804_2_)
     {
@@ -113,7 +113,7 @@ public class AnvilSaveConverter extends SaveFormatOld
     }
 
     /**
-     * Checks if the save directory uses the old map format
+     * 检查保存目录是否使用旧地图格式
      */
     public boolean isOldMapFormat(String p_75801_1_)
     {
@@ -122,35 +122,52 @@ public class AnvilSaveConverter extends SaveFormatOld
     }
 
     /**
-     * Converts the specified map to the new map format. Args: worldName, loadingScreen
+     * 将指定的地图转换为新的地图格式。参数：世界名称、加载屏幕
      */
-    public boolean convertMapFormat(String p_75805_1_, IProgressUpdate p_75805_2_)
+    public boolean convertMapFormat(String s, IProgressUpdate iProgressUpdate)
     {
-        p_75805_2_.setLoadingProgress(0);
+        // 初始化加载进度为0
+        iProgressUpdate.setLoadingProgress(0);
+
+        // 创建ArrayList用于存储区域文件
         ArrayList arraylist = new ArrayList();
         ArrayList arraylist1 = new ArrayList();
         ArrayList arraylist2 = new ArrayList();
-        File file1 = new File(this.savesDirectory, p_75805_1_);
+
+        // 定义世界、地狱和天空维度的文件路径
+        File file1 = new File(this.savesDirectory, s);
         File file2 = new File(file1, "DIM-1");
         File file3 = new File(file1, "DIM1");
+
+        // 通知日志开始扫描文件夹
         logger.info("Scanning folders...");
+
+        // 将世界维度的区域文件添加到集合中
         this.addRegionFilesToCollection(file1, arraylist);
 
+        // 如果地狱维度的文件夹存在，则将其中的区域文件添加到集合中
         if (file2.exists())
         {
             this.addRegionFilesToCollection(file2, arraylist1);
         }
 
+        // 如果天空维度的文件夹存在，则将其中的区域文件添加到集合中
         if (file3.exists())
         {
             this.addRegionFilesToCollection(file3, arraylist2);
         }
 
+        // 计算总共需要转换的区域文件数量
         int i = arraylist.size() + arraylist1.size() + arraylist2.size();
-        logger.info("Total conversion count is " + i);
-        WorldInfo worldinfo = this.getWorldInfo(p_75805_1_);
-        Object object = null;
 
+        // 通知日志总共需要转换的区域文件数量
+        logger.info("Total conversion count is " + i);
+
+        // 获取世界信息
+        WorldInfo worldinfo = this.getWorldInfo(s);
+
+        // 根据世界类型选择合适的WorldChunkManager
+        Object object = null;
         if (worldinfo.getTerrainType() == WorldType.FLAT)
         {
             object = new WorldChunkManagerHell(BiomeGenBase.plains, 0.5F);
@@ -160,45 +177,69 @@ public class AnvilSaveConverter extends SaveFormatOld
             object = new WorldChunkManager(worldinfo.getSeed(), worldinfo.getTerrainType());
         }
 
-        this.convertFile(new File(file1, "region"), arraylist, (WorldChunkManager)object, 0, i, p_75805_2_);
-        this.convertFile(new File(file2, "region"), arraylist1, new WorldChunkManagerHell(BiomeGenBase.hell, 0.0F), arraylist.size(), i, p_75805_2_);
-        this.convertFile(new File(file3, "region"), arraylist2, new WorldChunkManagerHell(BiomeGenBase.sky, 0.0F), arraylist.size() + arraylist1.size(), i, p_75805_2_);
+        // 转换世界维度的区域文件
+        this.convertFile(new File(file1, "region"), arraylist, (WorldChunkManager)object, 0, i, iProgressUpdate);
+
+        // 转换地狱维度的区域文件
+        this.convertFile(new File(file2, "region"), arraylist1, new WorldChunkManagerHell(BiomeGenBase.hell, 0.0F), arraylist.size(), i, iProgressUpdate);
+
+        // 转换天空维度的区域文件
+        this.convertFile(new File(file3, "region"), arraylist2, new WorldChunkManagerHell(BiomeGenBase.sky, 0.0F), arraylist.size() + arraylist1.size(), i, iProgressUpdate);
+
+        // 更新世界信息的保存版本
         worldinfo.setSaveVersion(19133);
 
+        // 如果世界类型为DEFAULT_1_1，则更新为DEFAULT
         if (worldinfo.getTerrainType() == WorldType.DEFAULT_1_1)
         {
             worldinfo.setTerrainType(WorldType.DEFAULT);
         }
 
-        this.createFile(p_75805_1_);
-        ISaveHandler isavehandler = this.getSaveLoader(p_75805_1_, false);
+        // 创建世界信息文件
+        this.createFile(s);
+
+        // 获取世界保存处理器
+        ISaveHandler isavehandler = this.getSaveLoader(s, false);
+
+        // 保存世界信息
         isavehandler.saveWorldInfo(worldinfo);
+
+        // 返回转换成功
         return true;
     }
 
     /**
-     * par: filename for the level.dat_mcr backup
+     * 创建一个指定名称的备份文件
+     * 此方法旨在对level.dat文件进行备份，通过重命名为level.dat_mcr
+     *
+     * @param fileName 备份文件的名称，通常为level.dat_mcr
      */
-    private void createFile(String p_75809_1_)
+    private void createFile(String fileName)
     {
-        File file1 = new File(this.savesDirectory, p_75809_1_);
+        // 创建备份文件的完整路径
+        File file1 = new File(this.savesDirectory, fileName);
 
+        // 检查备份文件是否存在，如果不存在则输出警告信息
         if (!file1.exists())
         {
             logger.warn("Unable to create level.dat_mcr backup");
         }
         else
         {
+            // 检查level.dat文件是否存在，这是需要备份的原始文件
             File file2 = new File(file1, "level.dat");
 
+            // 如果level.dat不存在，则输出警告信息
             if (!file2.exists())
             {
                 logger.warn("Unable to create level.dat_mcr backup");
             }
             else
             {
+                // 创建level.dat_mcr文件的路径，准备进行重命名操作
                 File file3 = new File(file1, "level.dat_mcr");
 
+                // 尝试将level.dat重命名为level.dat_mcr，如果失败则输出警告信息
                 if (!file2.renameTo(file3))
                 {
                     logger.warn("Unable to create level.dat_mcr backup");
@@ -222,24 +263,29 @@ public class AnvilSaveConverter extends SaveFormatOld
     }
 
     /**
-     * copies a 32x32 chunk set from par2File to par1File, via AnvilConverterData
+     * 通过 AnvilConverterData 将 32x32 块集从 par2File 复制到 par1File
      */
-    private void convertChunks(File p_75811_1_, File p_75811_2_, WorldChunkManager p_75811_3_, int p_75811_4_, int p_75811_5_, IProgressUpdate p_75811_6_)
+    private void convertChunks(File file, File file1, WorldChunkManager worldChunkManager, int x, int y, IProgressUpdate iProgressUpdate)
     {
         try
         {
-            String s = p_75811_2_.getName();
-            RegionFile regionfile = new RegionFile(p_75811_2_);
-            RegionFile regionfile1 = new RegionFile(new File(p_75811_1_, s.substring(0, s.length() - ".mcr".length()) + ".mca"));
+            // 获取源文件名
+            String s = file1.getName();
+            // 创建源区域文件和目标区域文件对象
+            RegionFile regionfile = new RegionFile(file1);
+            RegionFile regionfile1 = new RegionFile(new File(file, s.substring(0, s.length() - ".mcr".length()) + ".mca"));
 
+            // 遍历 32x32 的区块
             for (int k = 0; k < 32; ++k)
             {
                 int l;
 
                 for (l = 0; l < 32; ++l)
                 {
+                    // 检查源文件中区块是否已保存且目标文件中区块是否未保存
                     if (regionfile.isChunkSaved(k, l) && !regionfile1.isChunkSaved(k, l))
                     {
+                        // 获取源文件中区块的数据输入流
                         DataInputStream datainputstream = regionfile.getChunkDataInputStream(k, l);
 
                         if (datainputstream == null)
@@ -248,14 +294,17 @@ public class AnvilSaveConverter extends SaveFormatOld
                         }
                         else
                         {
+                            // 读取并解析区块数据
                             NBTTagCompound nbttagcompound = CompressedStreamTools.read(datainputstream);
                             datainputstream.close();
                             NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("Level");
                             ChunkLoader.AnvilConverterData anvilconverterdata = ChunkLoader.load(nbttagcompound1);
+                            // 创建新的 NBT 标签复合对象用于存储转换后的数据
                             NBTTagCompound nbttagcompound2 = new NBTTagCompound();
                             NBTTagCompound nbttagcompound3 = new NBTTagCompound();
                             nbttagcompound2.setTag("Level", nbttagcompound3);
-                            ChunkLoader.convertToAnvilFormat(anvilconverterdata, nbttagcompound3, p_75811_3_);
+                            // 将数据转换为 Anvil 格式并写入目标文件
+                            ChunkLoader.convertToAnvilFormat(anvilconverterdata, nbttagcompound3, worldChunkManager);
                             DataOutputStream dataoutputstream = regionfile1.getChunkDataOutputStream(k, l);
                             CompressedStreamTools.write(nbttagcompound2, dataoutputstream);
                             dataoutputstream.close();
@@ -263,15 +312,17 @@ public class AnvilSaveConverter extends SaveFormatOld
                     }
                 }
 
-                l = (int)Math.round(100.0D * (double)(p_75811_4_ * 1024) / (double)(p_75811_5_ * 1024));
-                int i1 = (int)Math.round(100.0D * (double)((k + 1) * 32 + p_75811_4_ * 1024) / (double)(p_75811_5_ * 1024));
+                // 计算并更新转换进度
+                l = (int)Math.round(100.0D * (double)(x * 1024) / (double)(y * 1024));
+                int i1 = (int)Math.round(100.0D * (double)((k + 1) * 32 + x * 1024) / (double)(y * 1024));
 
                 if (i1 > l)
                 {
-                    p_75811_6_.setLoadingProgress(i1);
+                    iProgressUpdate.setLoadingProgress(i1);
                 }
             }
 
+            // 关闭文件
             regionfile.close();
             regionfile1.close();
         }

@@ -17,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 public class SaveFormatOld implements ISaveFormat
 {
     private static final Logger logger = LogManager.getLogger();
-    /** Reference to the File object representing the directory for the world saves */
+    /** 对代表世界保存目录的 File 对象的引用 */
     public final File savesDirectory;
     private static final String __OBFID = "CL_00000586";
 

@@ -28,31 +28,31 @@ public class RegionFile
     private static final String __OBFID = "CL_00000381";
 
     // 构造函数，接受一个文件对象作为参数
-    public RegionFile(File p_i2001_1_) {
+    public RegionFile(File file) {
         // 初始化文件名和大小变化
-        this.fileName = p_i2001_1_;
+        this.fileName = file;
         this.sizeDelta = 0;
 
         try {
             // 检查文件是否存在，如果存在则记录最后修改时间
-            if (p_i2001_1_.exists()) {
-                this.lastModified = p_i2001_1_.lastModified();
+            if (file.exists()) {
+                this.lastModified = file.lastModified();
             }
 
             // 打开文件进行读写操作
-            this.dataFile = new RandomAccessFile(p_i2001_1_, "rw");
+            this.dataFile = new RandomAccessFile(file, "rw");
 
-            int i;
+            int count;
 
             // 如果文件长度小于 4096 字节，初始化文件头
             if (this.dataFile.length() < 4096L) {
                 // 写入 1024 个整型偏移值，初始化为 0
-                for (i = 0; i < 1024; ++i) {
+                for (count = 0; count < 1024; ++count) {
                     this.dataFile.writeInt(0);
                 }
 
                 // 写入 1024 个整型时间戳，初始化为 0
-                for (i = 0; i < 1024; ++i) {
+                for (count = 0; count < 1024; ++count) {
                     this.dataFile.writeInt(0);
                 }
 
@@ -62,21 +62,21 @@ public class RegionFile
 
             // 如果文件长度不是 4096 的整数倍，填充文件至对齐
             if ((this.dataFile.length() & 4095L) != 0L) {
-                for (i = 0; (long)i < (this.dataFile.length() & 4095L); ++i) {
+                for (count = 0; (long)count < (this.dataFile.length() & 4095L); ++count) {
                     this.dataFile.write(0);
                 }
             }
 
             // 计算文件的扇区数
-            i = (int)this.dataFile.length() / 4096;
+            count = (int)this.dataFile.length() / 4096;
 
             // 初始化空闲扇区标记列表
-            this.sectorFree = new ArrayList(i);
+            this.sectorFree = new ArrayList<Integer>(count);
 
             int j;
 
             // 初始化所有扇区为可用状态
-            for (j = 0; j < i; ++j) {
+            for (j = 0; j < count; ++j) {
                 this.sectorFree.add(Boolean.valueOf(true));
             }
 
@@ -157,11 +157,18 @@ public class RegionFile
     }
 
     /**
-     * args: x, y - get uncompressed chunk stream from the region file
+     * 获取未压缩的块数据输入流
+     * 根据给定的区块坐标，从区域文件中读取区块数据并返回一个输入流
+     * 如果区块数据不存在或读取过程中发生错误，则返回null
+     *
+     * @param x 区块的x坐标
+     * @param y 区块的z坐标
+     * @return DataInputStream 区块数据的输入流，如果无法获取则返回null
      */
-    public synchronized DataInputStream getChunkDataInputStream(int p_76704_1_, int p_76704_2_)
+    public synchronized DataInputStream getChunkDataInputStream(int x, int y)
     {
-        if (this.outOfBounds(p_76704_1_, p_76704_2_))
+        // 检查区块坐标是否超出区域文件的边界
+        if (this.outOfBounds(x, y))
         {
             return null;
         }
@@ -169,51 +176,59 @@ public class RegionFile
         {
             try
             {
-                int k = this.getOffset(p_76704_1_, p_76704_2_);
+                // 获取区块数据在文件中的偏移量
+                int offset = this.getOffset(x, y);
 
-                if (k == 0)
+                // 如果偏移量为0，表示区块数据不存在
+                if (offset == 0)
                 {
                     return null;
                 }
                 else
                 {
-                    int l = k >> 8;
-                    int i1 = k & 255;
+                    // 解析偏移量，获取区块数据所在的扇区和扇区数量
+                    int offsetR8 = offset >> 8;
+                    int offsetA255 = offset & 255;
 
-                    if (l + i1 > this.sectorFree.size())
+                    // 检查区块数据是否超出区域文件的范围
+                    if (offsetR8 + offsetA255 > this.sectorFree.size())
                     {
                         return null;
                     }
                     else
                     {
-                        this.dataFile.seek((long)(l * 4096));
-                        int j1 = this.dataFile.readInt();
+                        // 定位到区块数据的起始位置
+                        this.dataFile.seek((long)(offsetR8 * 4096));
+                        // 读取区块数据的长度
+                        int chunkLength = this.dataFile.readInt();
 
-                        if (j1 > 4096 * i1)
-                        {
-                            return null;
-                        }
-                        else if (j1 <= 0)
+                        // 检查区块数据长度是否超出扇区范围或无效
+                        if (chunkLength > 4096 * offsetA255 || chunkLength <= 0)
                         {
                             return null;
                         }
                         else
                         {
+                            // 读取区块数据的压缩方式标志
                             byte b0 = this.dataFile.readByte();
+                            // 根据压缩方式读取并解压缩区块数据
                             byte[] abyte;
 
+                            // 使用GZIP压缩
                             if (b0 == 1)
                             {
-                                abyte = new byte[j1 - 1];
+                                abyte = new byte[chunkLength - 1];
                                 this.dataFile.read(abyte);
                                 return new DataInputStream(new BufferedInputStream(new GZIPInputStream(new ByteArrayInputStream(abyte))));
                             }
+                            // 使用ZLIB压缩
                             else if (b0 == 2)
                             {
-                                abyte = new byte[j1 - 1];
+                                abyte = new byte[chunkLength - 1];
                                 this.dataFile.read(abyte);
                                 return new DataInputStream(new BufferedInputStream(new InflaterInputStream(new ByteArrayInputStream(abyte))));
                             }
+                            // 不支持的压缩方式
                             else
                             {
                                 return null;
@@ -222,6 +237,7 @@ public class RegionFile
                     }
                 }
             }
+            // 捕获IO异常，返回null
             catch (IOException ioexception)
             {
                 return null;
