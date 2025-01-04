@@ -7,18 +7,18 @@ public class NibbleArrayReader
     private final int depthBitsPlusFour;
     private static final String __OBFID = "CL_00000376";
 
-    public NibbleArrayReader(byte[] p_i1998_1_, int p_i1998_2_)
+    public NibbleArrayReader(byte[] data, int depthBits)
     {
-        this.data = p_i1998_1_;
-        this.depthBits = p_i1998_2_;
-        this.depthBitsPlusFour = p_i1998_2_ + 4;
+        this.data = data;
+        this.depthBits = depthBits;
+        this.depthBitsPlusFour = depthBits + 4;
     }
 
-    public int get(int p_76686_1_, int p_76686_2_, int p_76686_3_)
+    public int get(int x, int y, int z)
     {
-        int l = p_76686_1_ << this.depthBitsPlusFour | p_76686_3_ << this.depthBits | p_76686_2_;
-        int i1 = l >> 1;
-        int j1 = l & 1;
-        return j1 == 0 ? this.data[i1] & 15 : this.data[i1] >> 4 & 15;
+        int index = x << this.depthBitsPlusFour | z << this.depthBits | y; // x在左移depthBits + 4位后，z在左移depthBits位后，y在左移0位后，拼接在一起
+        int byteIndex = index >> 1; // 除以2?
+        int nibblePosition = index & 1; // index & 1 的结果是 0 或 1，表示目标 nibble 是字节的低四位（0）还是高四位（1）。
+        return nibblePosition == 0 ? this.data[byteIndex] & 15 : this.data[byteIndex] >> 4 & 15; // 等于0则返回低4位，等于1则返回高4位
     }
 }

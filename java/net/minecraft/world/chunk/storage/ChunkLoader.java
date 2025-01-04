@@ -9,28 +9,28 @@ public class ChunkLoader
 {
     private static final String __OBFID = "CL_00000379";
 
-    public static ChunkLoader.AnvilConverterData load(NBTTagCompound p_76691_0_)
+    public static ChunkLoader.AnvilConverterData load(NBTTagCompound nbtTagCompound)
     {
-        int i = p_76691_0_.getInteger("xPos");
-        int j = p_76691_0_.getInteger("zPos");
+        int i = nbtTagCompound.getInteger("xPos");
+        int j = nbtTagCompound.getInteger("zPos");
         ChunkLoader.AnvilConverterData anvilconverterdata = new ChunkLoader.AnvilConverterData(i, j);
-        anvilconverterdata.blocks = p_76691_0_.getByteArray("Blocks");
-        anvilconverterdata.data = new NibbleArrayReader(p_76691_0_.getByteArray("Data"), 7);
-        anvilconverterdata.skyLight = new NibbleArrayReader(p_76691_0_.getByteArray("SkyLight"), 7);
-        anvilconverterdata.blockLight = new NibbleArrayReader(p_76691_0_.getByteArray("BlockLight"), 7);
-        anvilconverterdata.heightmap = p_76691_0_.getByteArray("HeightMap");
-        anvilconverterdata.terrainPopulated = p_76691_0_.getBoolean("TerrainPopulated");
-        anvilconverterdata.entities = p_76691_0_.getTagList("Entities", 10);
-        anvilconverterdata.field_151564_i = p_76691_0_.getTagList("TileEntities", 10);
-        anvilconverterdata.field_151563_j = p_76691_0_.getTagList("TileTicks", 10);
+        anvilconverterdata.blocks = nbtTagCompound.getByteArray("Blocks");
+        anvilconverterdata.data = new NibbleArrayReader(nbtTagCompound.getByteArray("Data"), 7);
+        anvilconverterdata.skyLight = new NibbleArrayReader(nbtTagCompound.getByteArray("SkyLight"), 7);
+        anvilconverterdata.blockLight = new NibbleArrayReader(nbtTagCompound.getByteArray("BlockLight"), 7);
+        anvilconverterdata.heightmap = nbtTagCompound.getByteArray("HeightMap");
+        anvilconverterdata.terrainPopulated = nbtTagCompound.getBoolean("TerrainPopulated");
+        anvilconverterdata.entities = nbtTagCompound.getTagList("Entities", 10);
+        anvilconverterdata.tileEntities = nbtTagCompound.getTagList("TileEntities", 10);
+        anvilconverterdata.tileTicks = nbtTagCompound.getTagList("TileTicks", 10);
 
         try
         {
-            anvilconverterdata.lastUpdated = p_76691_0_.getLong("LastUpdate");
+            anvilconverterdata.lastUpdated = nbtTagCompound.getLong("LastUpdate");
         }
         catch (ClassCastException classcastexception)
         {
-            anvilconverterdata.lastUpdated = (long)p_76691_0_.getInteger("LastUpdate");
+            anvilconverterdata.lastUpdated = (long)nbtTagCompound.getInteger("LastUpdate");
         }
 
         return anvilconverterdata;
@@ -133,11 +133,11 @@ public class ChunkLoader
 
         p_76690_1_.setByteArray("Biomes", abyte);
         p_76690_1_.setTag("Entities", p_76690_0_.entities);
-        p_76690_1_.setTag("TileEntities", p_76690_0_.field_151564_i);
+        p_76690_1_.setTag("TileEntities", p_76690_0_.tileEntities);
 
-        if (p_76690_0_.field_151563_j != null)
+        if (p_76690_0_.tileTicks != null)
         {
-            p_76690_1_.setTag("TileTicks", p_76690_0_.field_151563_j);
+            p_76690_1_.setTag("TileTicks", p_76690_0_.tileTicks);
         }
     }
 
@@ -151,8 +151,8 @@ public class ChunkLoader
             public NibbleArrayReader data;
             public byte[] blocks;
             public NBTTagList entities;
-            public NBTTagList field_151564_i;
-            public NBTTagList field_151563_j;
+            public NBTTagList tileEntities;
+            public NBTTagList tileTicks;
             public final int x;
             public final int z;
             private static final String __OBFID = "CL_00000380";

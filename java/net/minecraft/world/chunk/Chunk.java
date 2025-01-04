@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.crash.CrashReport;
@@ -1021,7 +1020,7 @@ public class Chunk
         while (iterator.hasNext())
         {
             TileEntity tileentity = (TileEntity)iterator.next();
-            this.worldObj.func_147457_a(tileentity);
+            this.worldObj.addUnknownTileEntity(tileentity);
         }
 
         for (int i = 0; i < this.entityLists.length; ++i)

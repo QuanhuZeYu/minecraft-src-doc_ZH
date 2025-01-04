@@ -16,15 +16,18 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.world.WorldSavedData;
 
+/**
+ * 存储了哪些区块是需要保存的，以及物品字符串ID与数字ID的map
+ */
 public class MapStorage
 {
     private ISaveHandler saveHandler;
-    /** Map of item data String id to loaded MapDataBases */
-    private Map loadedDataMap = new HashMap();
-    /** List of loaded MapDataBases. */
-    private List loadedDataList = new ArrayList();
+    /** 将项目数据字符串 id 映射到加载的 MapDataBases */
+    private Map<String, WorldSavedData> loadedDataMap = new HashMap<>();
+    /** 已加载的 MapDataBase 列表。 */
+    private List<WorldSavedData> loadedDataList = new ArrayList<>();
     /** MapDataBase id 字符串前缀（'map' 等）到该前缀的最大已知唯一短 id（0 部分等）的映射 */
-    private Map idCounts = new HashMap();
+    private Map<String, Short> idCounts = new HashMap<>();
     private static final String __OBFID = "CL_00000604";
 
     public MapStorage(ISaveHandler p_i2162_1_)
@@ -37,9 +40,9 @@ public class MapStorage
      * 从磁盘加载与给定 String id 对应的现有 MapDataBase，实例化给定类，或者
      * 如果不存在这样的文件则返回 null。 args：要实例化的类，字符串 dataid
      */
-    public WorldSavedData loadData(Class<? extends net.minecraft.world.WorldSavedData> p_75742_1_, String p_75742_2_)
+    public WorldSavedData loadData(Class<? extends net.minecraft.world.WorldSavedData> worldSaveData, String id)
     {
-        WorldSavedData worldsaveddata = (WorldSavedData)this.loadedDataMap.get(p_75742_2_);
+        WorldSavedData worldsaveddata = (WorldSavedData)this.loadedDataMap.get(id);
 
         if (worldsaveddata != null)
         {
@@ -51,17 +54,17 @@ public class MapStorage
             {
                 try
                 {
-                    File file1 = this.saveHandler.getMapFileFromName(p_75742_2_);
+                    File file1 = this.saveHandler.getMapFileFromName(id);
 
                     if (file1 != null && file1.exists())
                     {
                         try
                         {
-                            worldsaveddata = (WorldSavedData)p_75742_1_.getConstructor(new Class[] {String.class}).newInstance(new Object[] {p_75742_2_});
+                            worldsaveddata = (WorldSavedData)worldSaveData.getConstructor(new Class[] {String.class}).newInstance(new Object[] {id});
                         }
                         catch (Exception exception)
                         {
-                            throw new RuntimeException("Failed to instantiate " + p_75742_1_.toString(), exception);
+                            throw new RuntimeException("Failed to instantiate " + worldSaveData.toString(), exception);
                         }
 
                         FileInputStream fileinputstream = new FileInputStream(file1);
@@ -78,7 +81,7 @@ public class MapStorage
 
             if (worldsaveddata != null)
             {
-                this.loadedDataMap.put(p_75742_2_, worldsaveddata);
+                this.loadedDataMap.put(id, worldsaveddata);
                 this.loadedDataList.add(worldsaveddata);
             }
 
@@ -87,11 +90,11 @@ public class MapStorage
     }
 
     /**
-     * Assigns the given String id to the given MapDataBase, removing any existing ones of the same id.
+     * 将给定的字符串 id 分配给给定的 MapDataBase，删除任何现有的相同 id。
      */
-    public void setData(String p_75745_1_, WorldSavedData p_75745_2_)
+    public void setData(String p_75745_1_, WorldSavedData worldSavedData)
     {
-        if (p_75745_2_ == null)
+        if (worldSavedData == null)
         {
             throw new RuntimeException("Can\'t set null data");
         }
@@ -102,13 +105,13 @@ public class MapStorage
                 this.loadedDataList.remove(this.loadedDataMap.remove(p_75745_1_));
             }
 
-            this.loadedDataMap.put(p_75745_1_, p_75745_2_);
-            this.loadedDataList.add(p_75745_2_);
+            this.loadedDataMap.put(p_75745_1_, worldSavedData);
+            this.loadedDataList.add(worldSavedData);
         }
     }
 
     /**
-     * Saves all dirty loaded MapDataBases to disk.
+     * 将所有脏加载的 MapDataBase 保存到磁盘。
      */
     public void saveAllData()
     {
@@ -125,20 +128,20 @@ public class MapStorage
     }
 
     /**
-     * Saves the given MapDataBase to disk.
+     * 将给定的MapDataBase 保存到磁盘。
      */
-    private void saveData(WorldSavedData p_75747_1_)
+    private void saveData(WorldSavedData worldSavedData)
     {
         if (this.saveHandler != null)
         {
             try
             {
-                File file1 = this.saveHandler.getMapFileFromName(p_75747_1_.mapName);
+                File file1 = this.saveHandler.getMapFileFromName(worldSavedData.mapName);
 
                 if (file1 != null)
                 {
                     NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    p_75747_1_.writeToNBT(nbttagcompound);
+                    worldSavedData.writeToNBT(nbttagcompound);
                     NBTTagCompound nbttagcompound1 = new NBTTagCompound();
                     nbttagcompound1.setTag("data", nbttagcompound);
                     FileOutputStream fileoutputstream = new FileOutputStream(file1);
@@ -154,7 +157,7 @@ public class MapStorage
     }
 
     /**
-     * Loads the idCounts Map from the 'idcounts' file.
+     * 从“idcounts”文件加载 idCounts 映射。
      */
     private void loadIdCounts()
     {
@@ -167,14 +170,14 @@ public class MapStorage
                 return;
             }
 
-            File file1 = this.saveHandler.getMapFileFromName("idcounts");
+            File idMap = this.saveHandler.getMapFileFromName("idcounts");
 
-            if (file1 != null && file1.exists())
+            if (idMap != null && idMap.exists())
             {
-                DataInputStream datainputstream = new DataInputStream(new FileInputStream(file1));
-                NBTTagCompound nbttagcompound = CompressedStreamTools.read(datainputstream);
-                datainputstream.close();
-                Iterator iterator = nbttagcompound.func_150296_c().iterator();
+                DataInputStream idMapStream = new DataInputStream(new FileInputStream(idMap));
+                NBTTagCompound nbttagcompound = CompressedStreamTools.read(idMapStream);
+                idMapStream.close();
+                Iterator<String> iterator = nbttagcompound.func_150296_c().iterator();
 
                 while (iterator.hasNext())
                 {
@@ -197,11 +200,11 @@ public class MapStorage
     }
 
     /**
-     * Returns an unique new data id for the given prefix and saves the idCounts map to the 'idcounts' file.
+     * 返回给定前缀的唯一新数据 ID，并将 idCounts 映射保存到“idcounts”文件中。
      */
-    public int getUniqueDataId(String p_75743_1_)
+    public int getUniqueDataId(String id)
     {
-        Short oshort = (Short)this.idCounts.get(p_75743_1_);
+        Short oshort = (Short)this.idCounts.get(id);
 
         if (oshort == null)
         {
@@ -212,7 +215,7 @@ public class MapStorage
             oshort = Short.valueOf((short)(oshort.shortValue() + 1));
         }
 
-        this.idCounts.put(p_75743_1_, oshort);
+        this.idCounts.put(id, oshort);
 
         if (this.saveHandler == null)
         {

@@ -20,14 +20,14 @@ import static net.minecraft.world.biome.BiomeGenBase.*;
 
 public class WorldChunkManager
 {
-    public static ArrayList<BiomeGenBase> allowedBiomes = new ArrayList<BiomeGenBase>(Arrays.asList(forest, plains, taiga, taigaHills, forestHills, jungle, jungleHills));
+    public static ArrayList<BiomeGenBase> allowedBiomes = new ArrayList<>(Arrays.asList(forest, plains, taiga, taigaHills, forestHills, jungle, jungleHills));
     private GenLayer genBiomes;
-    /** A GenLayer containing the indices into BiomeGenBase.biomeList[] */
+    /** 一个包含索引到 BiomeGenBase.biomeList 中的 GenLayer */
     private GenLayer biomeIndexLayer;
-    /** The BiomeCache object for this world. */
+    /** 此世界的 BiomeCache 对象。*/
     private BiomeCache biomeCache;
-    /** A list of biomes that the player can spawn in. */
-    private List biomesToSpawnIn;
+    /** 玩家可以在其中生成的生物群系列表。 */
+    private List<BiomeGenBase> biomesToSpawnIn;
     private static final String __OBFID = "CL_00000166";
 
     protected WorldChunkManager()

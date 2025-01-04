@@ -4,9 +4,9 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public abstract class WorldSavedData
 {
-    /** The name of the map data nbt */
+    /** 地图数据nbt的名称 */
     public final String mapName;
-    /** Whether this MapDataBase needs saving to disk. */
+    /** 这个MapDataBase是否需要保存到磁盘。 */
     private boolean dirty;
     private static final String __OBFID = "CL_00000580";
 
@@ -16,17 +16,17 @@ public abstract class WorldSavedData
     }
 
     /**
-     * reads in data from the NBTTagCompound into this MapDataBase
+     * 将 NBTTagCompound 中的数据读入此 MapDataBase
      */
     public abstract void readFromNBT(NBTTagCompound p_76184_1_);
 
     /**
-     * write data to NBTTagCompound from this MapDataBase, similar to Entities and TileEntities
+     * 从这个MapDataBase写入数据到NBTTagCompound，类似于Entities和TileEntities
      */
     public abstract void writeToNBT(NBTTagCompound p_76187_1_);
 
     /**
-     * Marks this MapDataBase dirty, to be saved to disk when the level next saves.
+     * 将此 MapDataBase 标记为脏，以便在下次保存关卡时将其保存到磁盘。
      */
     public void markDirty()
     {
@@ -34,7 +34,7 @@ public abstract class WorldSavedData
     }
 
     /**
-     * Sets the dirty state of this MapDataBase, whether it needs saving to disk.
+     * 设置此MapDataBase的脏状态，是否需要保存到磁盘。
      */
     public void setDirty(boolean p_76186_1_)
     {
@@ -42,7 +42,7 @@ public abstract class WorldSavedData
     }
 
     /**
-     * Whether this MapDataBase needs saving to disk.
+     * 该MapDataBase是否需要保存到磁盘。
      */
     public boolean isDirty()
     {

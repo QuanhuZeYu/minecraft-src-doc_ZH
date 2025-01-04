@@ -61,7 +61,7 @@ public abstract class BiomeGenBase
     protected static final BiomeGenBase.Height height_RockyWaters = new BiomeGenBase.Height(0.1F, 0.8F);
     protected static final BiomeGenBase.Height height_LowIslands = new BiomeGenBase.Height(0.2F, 0.3F);
     protected static final BiomeGenBase.Height height_PartiallySubmerged = new BiomeGenBase.Height(-0.2F, 0.1F);
-    /** An array of all the biomes, indexed by biome id. */
+    /** 所有生物群系的数组，按生物群系 ID 索引。*/
     private static final BiomeGenBase[] biomeList = new BiomeGenBase[256];
     public static final Set<net.minecraft.world.biome.BiomeGenBase> explorationBiomesList = Sets.newHashSet();
     public static final BiomeGenBase ocean = (new BiomeGenOcean(0)).setColor(112).setBiomeName("Ocean").setHeight(height_Oceans);
@@ -73,7 +73,7 @@ public abstract class BiomeGenBase
     public static final BiomeGenBase swampland = (new BiomeGenSwamp(6)).setColor(522674).setBiomeName("Swampland").func_76733_a(9154376).setHeight(height_PartiallySubmerged).setTemperatureRainfall(0.8F, 0.9F);
     public static final BiomeGenBase river = (new BiomeGenRiver(7)).setColor(255).setBiomeName("River").setHeight(height_ShallowWaters);
     public static final BiomeGenBase hell = (new BiomeGenHell(8)).setColor(16711680).setBiomeName("Hell").setDisableRain().setTemperatureRainfall(2.0F, 0.0F);
-    /** Is the biome used for sky world. */
+    /** 是用于天空世界的生物群系。 */
     public static final BiomeGenBase sky = (new BiomeGenEnd(9)).setColor(8421631).setBiomeName("Sky").setDisableRain();
     public static final BiomeGenBase frozenOcean = (new BiomeGenOcean(10)).setColor(9474208).setBiomeName("FrozenOcean").setEnableSnow().setHeight(height_Oceans).setTemperatureRainfall(0.0F, 0.5F);
     public static final BiomeGenBase frozenRiver = (new BiomeGenRiver(11)).setColor(10526975).setBiomeName("FrozenRiver").setEnableSnow().setHeight(height_ShallowWaters).setTemperatureRainfall(0.0F, 0.5F);
@@ -114,34 +114,35 @@ public abstract class BiomeGenBase
     protected static final NoiseGeneratorPerlin temperatureNoise;
     protected static final NoiseGeneratorPerlin plantNoise;
     protected static final WorldGenDoublePlant genTallFlowers;
+
     public String biomeName;
     public int color;
     public int field_150609_ah;
-    /** The block expected to be on the top of this biome */
+    /** 预计位于此生物群系顶部的方块 */
     public Block topBlock;
     public int field_150604_aj;
     /** The block to fill spots in when not on the top */
     public Block fillerBlock;
     public int field_76754_C;
     /**
-     * The median height from which this biome will be generated. Values between -2 and 2  loosely represent y=0 and
-     * y=128 respectively.
+     * 生成该生物群落的中位高度。 -2 和 2 之间的值松散地表示 y=0 和
+     * y=128 分别。
      */
     public float rootHeight;
     /**
-     * Determines the maximum degree of departure from the rootHeight of the biome, positive or negative. Low values
-     * result in flatter terrain, where high values create steep peaks and trenches.
+     * 确定偏离生物群系 rootHeight 的最大程度，正数或负数。低值
+     * 导致地形更加平坦，高值会产生陡峭的山峰和沟渠。
      */
     public float heightVariation;
-    /** The temperature of this biome. */
+    /** 该生物群系的温度。 */
     public float temperature;
-    /** The rainfall in this biome. */
+    /** 该生物群落的降雨量。 */
     public float rainfall;
-    /** Color tint applied to water depending on biome */
+    /** 根据生物群系应用于水的色调 */
     public int waterColorMultiplier;
-    /** The biome decorator. */
+    /** 生物群系装饰器。 */
     public BiomeDecorator theBiomeDecorator;
-    /** Holds the classes of IMobs (hostile mobs) that can be spawned in the biome. */
+    /** 保存可以在生物群系中生成的 IMobs（敌对生物）的类别。 */
     protected List<net.minecraft.world.biome.BiomeGenBase.SpawnListEntry> spawnableMonsterList;
     /** Holds the classes of any creature that can be spawned in the biome as friendly creature. */
     protected List<net.minecraft.world.biome.BiomeGenBase.SpawnListEntry> spawnableCreatureList;
@@ -152,21 +153,21 @@ public abstract class BiomeGenBase
     protected boolean enableSnow;
     /** Is true (default) if the biome support rain (desert and nether can't have rain) */
     protected boolean enableRain;
-    /** The id number to this biome, and its index in the biomeList array. */
+    /** 该生物群系的 id 号及其在 biomeList 数组中的索引。 */
     public final int biomeID;
-    /** The tree generator. */
+    /** 树生成器。 */
     protected WorldGenTrees worldGeneratorTrees;
     /** The big tree generator. */
     protected WorldGenBigTree worldGeneratorBigTree;
-    /** The swamp tree generator. */
+    /** 沼泽树生成器。 */
     protected WorldGenSwamp worldGeneratorSwamp;
     private static final String __OBFID = "CL_00000158";
 
-    public BiomeGenBase(int p_i1971_1_)
+    public BiomeGenBase(int biomeListSize)
     {
-        this(p_i1971_1_, true);
+        this(biomeListSize, true);
     }
-    public BiomeGenBase(int p_i1971_1_, boolean register)
+    public BiomeGenBase(int biomeListSize, boolean register)
     {
         this.topBlock = Blocks.grass;
         this.field_150604_aj = 0;
@@ -185,9 +186,9 @@ public abstract class BiomeGenBase
         this.worldGeneratorTrees = new WorldGenTrees(false);
         this.worldGeneratorBigTree = new WorldGenBigTree(false);
         this.worldGeneratorSwamp = new WorldGenSwamp();
-        this.biomeID = p_i1971_1_;
+        this.biomeID = biomeListSize;
         if (register)
-        biomeList[p_i1971_1_] = this;
+            biomeList[biomeListSize] = this;
         this.theBiomeDecorator = this.createBiomeDecorator();
         this.spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntitySheep.class, 12, 4, 4));
         this.spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityPig.class, 10, 4, 4));
@@ -343,7 +344,7 @@ public abstract class BiomeGenBase
     }
 
     /**
-     * Returns true if the biome have snowfall instead a normal rain.
+     * 如果生物群系有降雪而不是正常的降雨，则返回 true。
      */
     public boolean getEnableSnow()
     {
@@ -351,7 +352,7 @@ public abstract class BiomeGenBase
     }
 
     /**
-     * Return true if the biome supports lightning bolt spawn, either by have the bolts enabled and have rain enabled.
+     * 如果生物群落支持闪电生成，则返回 true，无论是启用闪电还是启用降雨。
      */
     public boolean canSpawnLightningBolt()
     {
@@ -359,7 +360,7 @@ public abstract class BiomeGenBase
     }
 
     /**
-     * Checks to see if the rainfall level of the biome is extremely high
+     * 检查生物群落的降雨量是否极高
      */
     public boolean isHighHumidity()
     {

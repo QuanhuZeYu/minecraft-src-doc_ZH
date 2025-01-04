@@ -340,7 +340,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Gets the NBTTagList object with the given name. Args: name, NBTBase type
+     * 获取具有给定名称的 NBTTagList 对象。参数：名称、NBTBase 类型
      */
     public NBTTagList getTagList(String key, int type)
     {

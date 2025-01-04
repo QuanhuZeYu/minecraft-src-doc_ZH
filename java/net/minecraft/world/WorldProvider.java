@@ -29,7 +29,7 @@ public abstract class WorldProvider
     public World worldObj;
     public WorldType terrainType;
     public String field_82913_c;
-    /** World chunk manager being used to generate chunks */
+    /** 用于生成数据块的世界数据块管理器 */
     public WorldChunkManager worldChunkMgr;
     /** States whether the Hell world provider is used(true) or if the normal world provider is used(false) */
     public boolean isHellWorld;

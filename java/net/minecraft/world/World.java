@@ -13,11 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHopper;
 import net.minecraft.block.BlockLiquid;
-import net.minecraft.block.BlockSlab;
-import net.minecraft.block.BlockSnow;
-import net.minecraft.block.BlockStairs;
 import net.minecraft.block.material.Material;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.crash.CrashReport;
@@ -36,7 +32,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.Direction;
 import net.minecraft.util.Facing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
@@ -60,13 +55,11 @@ import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeModContainer;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.common.WorldSpecificSaveHandler;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraft.entity.EnumCreatureType;
 
@@ -84,12 +77,12 @@ public abstract class World implements IBlockAccess
     /**布尔;如果 scheduleBlockUpdate 计划的更新为 true，则立即发生 */
     public boolean scheduledUpdatesAreImmediate;
     /** 当前加载的所有块中所有实体的列表 */
-    public List<net.minecraft.entity.Entity> loadedEntityList = new ArrayList();
-    protected List<net.minecraft.entity.Entity> unloadedEntityList = new ArrayList();
+    public List<net.minecraft.entity.Entity> loadedEntityList = new ArrayList<>();
+    protected List<net.minecraft.entity.Entity> unloadedEntityList = new ArrayList<>();
     /** 世界中加载的瓦片实体的列表 */
-    public List<net.minecraft.tileentity.TileEntity> loadedTileEntityList = new ArrayList();
-    private List addedTileEntityList = new ArrayList();
-    private List field_147483_b = new ArrayList();
+    public List<net.minecraft.tileentity.TileEntity> loadedTileEntityList = new ArrayList<>();
+    private List<net.minecraft.tileentity.TileEntity> addedTileEntityList = new ArrayList<>();
+    private List<net.minecraft.tileentity.TileEntity> unknowTileEntity = new ArrayList<>();
     /** 世界上的玩家数组列表。*/
     public List<net.minecraft.entity.player.EntityPlayer> playerEntities = new ArrayList();
     /** 所有闪电实体的列表 */
@@ -98,9 +91,9 @@ public abstract class World implements IBlockAccess
     /** 从全日光中减去多少光 */
     public int skylightSubtracted;
     /**
-     * Contains the current Linear Congruential Generator seed for block updates. Used with an A value of 3 and a C
-     * value of 0x3c6ef35f, producing a highly planar series of values ill-suited for choosing random blocks in a
-     * 16x128x16 field.
+     * 包含当前用于块更新的线性同余生成器种子。与 A 值为 3 和 C 一起使用
+     * 值 0x3c6ef35f，产生一系列高度平面的值，不适合在 a 中选择随机块
+     * 16x128x16 字段。
      */
     /** 包含用于块更新的当前 Linear Congruential Generator 种子。与 A 值 3 和 C 值 0x3c6ef35f一起使用时，会产生一系列高度平面的值，不适合在 16x128x16 字段中选择随机块。*/
     protected int updateLCG = (new Random()).nextInt();
@@ -377,23 +370,24 @@ public abstract class World implements IBlockAccess
         return this.getBlock(x, k, z);
     }
 
-    public Block getBlock(int p_147439_1_, int p_147439_2_, int p_147439_3_)
+    public Block getBlock(int x, int y, int z)
     {
-        if (p_147439_1_ >= -30000000 && p_147439_3_ >= -30000000 && p_147439_1_ < 30000000 && p_147439_3_ < 30000000 && p_147439_2_ >= 0 && p_147439_2_ < 256)
+        // 这段代码确保坐标 (x, y, z) 在一个定义好的世界边界内，其中 x 和 z 的范围是 ±30000000，而 y 的范围是从地面到天空的高度限制。
+        if (x >= -30000000 && z >= -30000000 && x < 30000000 && z < 30000000 && y >= 0 && y < 256)
         {
             Chunk chunk = null;
 
             try
             {
-                chunk = this.getChunkFromChunkCoords(p_147439_1_ >> 4, p_147439_3_ >> 4);
-                return chunk.getBlock(p_147439_1_ & 15, p_147439_2_, p_147439_3_ & 15);
+                chunk = this.getChunkFromChunkCoords(x >> 4, z >> 4);
+                return chunk.getBlock(x & 15, y, z & 15);
             }
             catch (Throwable throwable)
             {
                 CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Exception getting block type in world");
                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Requested block coordinates");
                 crashreportcategory.addCrashSection("Found chunk", Boolean.valueOf(chunk == null));
-                crashreportcategory.addCrashSection("Location", CrashReportCategory.getLocationInfo(p_147439_1_, p_147439_2_, p_147439_3_));
+                crashreportcategory.addCrashSection("Location", CrashReportCategory.getLocationInfo(x, y, z));
                 throw new ReportedException(crashreport);
             }
         }
@@ -2194,14 +2188,14 @@ public abstract class World implements IBlockAccess
             }
         }
 
-        if (!this.field_147483_b.isEmpty())
+        if (!this.unknowTileEntity.isEmpty())
         {
-            for (Object tile : field_147483_b)
+            for (Object tile : unknowTileEntity)
             {
                ((TileEntity)tile).onChunkUnload();
             }
-            this.loadedTileEntityList.removeAll(this.field_147483_b);
-            this.field_147483_b.clear();
+            this.loadedTileEntityList.removeAll(this.unknowTileEntity);
+            this.unknowTileEntity.clear();
         }
 
         this.field_147481_N = false;
@@ -2879,9 +2873,9 @@ public abstract class World implements IBlockAccess
         func_147453_f(x, y, z, getBlock(x, y, z));
     }
 
-    public void func_147457_a(TileEntity tileEntityIn)
+    public void addUnknownTileEntity(TileEntity tileEntityIn)
     {
-        this.field_147483_b.add(tileEntityIn);
+        this.unknowTileEntity.add(tileEntityIn);
     }
 
     public boolean func_147469_q(int x, int y, int z)
