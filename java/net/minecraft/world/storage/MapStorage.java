@@ -177,7 +177,7 @@ public class MapStorage
                 DataInputStream idMapStream = new DataInputStream(new FileInputStream(idMap));
                 NBTTagCompound nbttagcompound = CompressedStreamTools.read(idMapStream);
                 idMapStream.close();
-                Iterator<String> iterator = nbttagcompound.func_150296_c().iterator();
+                Iterator<String> iterator = nbttagcompound.getKeys().iterator();
 
                 while (iterator.hasNext())
                 {

@@ -25,7 +25,7 @@ public class NBTTagInt extends NBTBase.NBTPrimitive
         output.writeInt(this.data);
     }
 
-    void func_152446_a(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
+    void readNBT(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
     {
         sizeTracker.func_152450_a(32L);
         this.data = input.readInt();
@@ -52,11 +52,11 @@ public class NBTTagInt extends NBTBase.NBTPrimitive
         return new NBTTagInt(this.data);
     }
 
-    public boolean equals(Object p_equals_1_)
+    public boolean equals(Object obj)
     {
-        if (super.equals(p_equals_1_))
+        if (super.equals(obj))
         {
-            NBTTagInt nbttagint = (NBTTagInt)p_equals_1_;
+            NBTTagInt nbttagint = (NBTTagInt) obj;
             return this.data == nbttagint.data;
         }
         else

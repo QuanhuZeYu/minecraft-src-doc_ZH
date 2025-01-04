@@ -86,7 +86,7 @@ public class GameRules
      */
     public void readGameRulesFromNBT(NBTTagCompound p_82768_1_)
     {
-        Set set = p_82768_1_.func_150296_c();
+        Set set = p_82768_1_.getKeys();
         Iterator iterator = set.iterator();
 
         while (iterator.hasNext())

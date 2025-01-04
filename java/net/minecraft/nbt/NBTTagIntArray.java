@@ -31,7 +31,7 @@ public class NBTTagIntArray extends NBTBase
         }
     }
 
-    void func_152446_a(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
+    void readNBT(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
     {
         sizeTracker.func_152450_a(32); //Forge: Count the length as well
         int j = input.readInt();
@@ -77,9 +77,9 @@ public class NBTTagIntArray extends NBTBase
         return new NBTTagIntArray(aint);
     }
 
-    public boolean equals(Object p_equals_1_)
+    public boolean equals(Object obj)
     {
-        return super.equals(p_equals_1_) ? Arrays.equals(this.intArray, ((NBTTagIntArray)p_equals_1_).intArray) : false;
+        return super.equals(obj) ? Arrays.equals(this.intArray, ((NBTTagIntArray) obj).intArray) : false;
     }
 
     public int hashCode()

@@ -147,7 +147,7 @@ public class EntityFallingBlock extends Entity
                                 {
                                     NBTTagCompound nbttagcompound = new NBTTagCompound();
                                     tileentity.writeToNBT(nbttagcompound);
-                                    Iterator iterator = this.field_145810_d.func_150296_c().iterator();
+                                    Iterator iterator = this.field_145810_d.getKeys().iterator();
 
                                     while (iterator.hasNext())
                                     {

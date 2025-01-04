@@ -33,7 +33,7 @@ public class NBTTagString extends NBTBase
         output.writeUTF(this.data);
     }
 
-    void func_152446_a(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
+    void readNBT(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
     {
         this.data = input.readUTF();
         NBTSizeTracker.readUTF(sizeTracker, data); // Forge: Correctly read String length including header.
@@ -60,15 +60,15 @@ public class NBTTagString extends NBTBase
         return new NBTTagString(this.data);
     }
 
-    public boolean equals(Object p_equals_1_)
+    public boolean equals(Object obj)
     {
-        if (!super.equals(p_equals_1_))
+        if (!super.equals(obj))
         {
             return false;
         }
         else
         {
-            NBTTagString nbttagstring = (NBTTagString)p_equals_1_;
+            NBTTagString nbttagstring = (NBTTagString) obj;
             return this.data == null && nbttagstring.data == null || this.data != null && this.data.equals(nbttagstring.data);
         }
     }

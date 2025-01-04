@@ -160,7 +160,7 @@ public abstract class MobSpawnerBaseLogic
         {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             p_98265_1_.writeToNBTOptional(nbttagcompound);
-            Iterator iterator = this.getRandomEntity().field_98222_b.func_150296_c().iterator();
+            Iterator iterator = this.getRandomEntity().field_98222_b.getKeys().iterator();
 
             while (iterator.hasNext())
             {
@@ -187,7 +187,7 @@ public abstract class MobSpawnerBaseLogic
                 {
                     NBTTagCompound nbttagcompound1 = new NBTTagCompound();
                     entity2.writeToNBTOptional(nbttagcompound1);
-                    Iterator iterator1 = nbttagcompound2.func_150296_c().iterator();
+                    Iterator iterator1 = nbttagcompound2.getKeys().iterator();
 
                     while (iterator1.hasNext())
                     {

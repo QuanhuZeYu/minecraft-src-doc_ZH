@@ -659,7 +659,7 @@ public final class ItemStack
                     }
                 }
 
-                if (nbttagcompound.func_150299_b("Lore") == 9)
+                if (nbttagcompound.getID("Lore") == 9)
                 {
                     NBTTagList nbttaglist1 = nbttagcompound.getTagList("Lore", 8);
 

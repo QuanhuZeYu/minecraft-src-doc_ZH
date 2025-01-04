@@ -38,7 +38,7 @@ public class NBTTagList extends NBTBase
         }
     }
 
-    void func_152446_a(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
+    void readNBT(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
     {
         if (depth > 512)
         {
@@ -56,7 +56,7 @@ public class NBTTagList extends NBTBase
             {
                 sizeTracker.func_152450_a(32); //Forge: 4 extra bytes for the object allocation.
                 NBTBase nbtbase = NBTBase.func_150284_a(this.tagType);
-                nbtbase.func_152446_a(input, depth + 1, sizeTracker);
+                nbtbase.readNBT(input, depth + 1, sizeTracker);
                 this.tagList.add(nbtbase);
             }
         }
@@ -231,11 +231,11 @@ public class NBTTagList extends NBTBase
         return nbttaglist;
     }
 
-    public boolean equals(Object p_equals_1_)
+    public boolean equals(Object obj)
     {
-        if (super.equals(p_equals_1_))
+        if (super.equals(obj))
         {
-            NBTTagList nbttaglist = (NBTTagList)p_equals_1_;
+            NBTTagList nbttaglist = (NBTTagList) obj;
 
             if (this.tagType == nbttaglist.tagType)
             {

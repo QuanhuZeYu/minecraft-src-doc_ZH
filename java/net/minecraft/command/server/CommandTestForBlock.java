@@ -166,7 +166,7 @@ public class CommandTestForBlock extends CommandBase
         {
             NBTTagCompound nbttagcompound = (NBTTagCompound)p_147181_1_;
             NBTTagCompound nbttagcompound1 = (NBTTagCompound)p_147181_2_;
-            Iterator iterator = nbttagcompound.func_150296_c().iterator();
+            Iterator iterator = nbttagcompound.getKeys().iterator();
             String s;
             NBTBase nbtbase2;
 

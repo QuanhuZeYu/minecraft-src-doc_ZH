@@ -17,55 +17,85 @@ import org.apache.logging.log4j.Logger;
 public class NBTTagCompound extends NBTBase
 {
     private static final Logger logger = LogManager.getLogger();
-    /** The key-value pairs for the tag. Each key is a UTF string, each value is a tag. */
-    private Map tagMap = new HashMap();
+    /** 标签的键值对。每个键都是一个 UTF 字符串，每个值都是一个标签。 */
+    private Map<String, NBTBase> tagMap = new HashMap<>();
     private static final String __OBFID = "CL_00001215";
 
     /**
-     * Write the actual data contents of the tag, implemented in NBT extension classes
+     * 写入标签的实际数据内容，在NBT扩展类中实现
      */
     void write(DataOutput output) throws IOException
     {
-        Iterator iterator = this.tagMap.keySet().iterator();
+        // 创建一个迭代器来遍历标签映射中的键
+        Iterator<String> iterator = this.tagMap.keySet().iterator();
 
+        // 遍历标签映射
         while (iterator.hasNext())
         {
+            // 获取当前标签的键
             String s = (String)iterator.next();
+            // 根据键获取对应的NBT标签对象
             NBTBase nbtbase = (NBTBase)this.tagMap.get(s);
+            // 调用方法将当前标签的键和对应的NBT标签对象写入输出流
             func_150298_a(s, nbtbase, output);
         }
 
+        // 写入一个表示结束的字节
         output.writeByte(0);
     }
 
-    void func_152446_a(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
+    /**
+     * func_152446_a <br>
+     * 从DataInput中读取NBT数据
+     * <p>
+     * 此方法负责解析NBT数据结构，它首先检查深度是否超过最大值（512），以防止过深的解析导致性能问题
+     * 然后，它清空当前的tag映射，并根据输入数据重新填充这个映射
+     * 它通过循环读取每个标签的类型、名称和值，直到遇到类型为0的标签，表示数据结束
+     *
+     * @param input 数据输入流，用于读取NBT数据
+     * @param depth 当前解析的深度，用于防止过深的解析
+     * @param sizeTracker NBT大小跟踪器，用于监控读取的数据量，防止过量读取
+     * @throws IOException 如果读取数据时发生I/O错误
+     */
+    void readNBT(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
     {
+        // 检查深度是否超过最大值，如果超过则抛出异常
         if (depth > 512)
         {
             throw new RuntimeException("Tried to read NBT tag with too high complexity, depth > 512");
         }
         else
         {
+            // 清空当前的tag映射，准备读取新的数据
             this.tagMap.clear();
             byte b0;
 
+            // 循环读取NBT标签，直到遇到类型为0的标签
             while ((b0 = func_152447_a(input, sizeTracker)) != 0)
             {
+                // 读取标签的名称
                 String s = func_152448_b(input, sizeTracker);
+                // 读取字符串长度，包括头部，确保正确读取
                 NBTSizeTracker.readUTF(sizeTracker, s); // Forge: Correctly read String length including header.
+                // 根据标签类型和名称，读取标签的值
                 NBTBase nbtbase = func_152449_a(b0, s, input, depth + 1, sizeTracker);
+                // 将标签添加到映射中
                 this.tagMap.put(s, nbtbase);
             }
         }
     }
 
-    public Set<String> func_150296_c()
+    /**
+     * func_150296_c
+     * @return 所有标签的键的集合
+     */
+    public Set<String> getKeys()
     {
         return this.tagMap.keySet();
     }
 
     /**
-     * Gets the type byte for the tag.
+     * 获取标签的类型字节。
      */
     public byte getId()
     {
@@ -73,7 +103,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores the given tag into the map with the given string key. This is mostly used to store tag lists.
+     * 使用给定的字符串键将给定的标签存储到映射中。这主要用于存储标签列表。
      */
     public void setTag(String key, NBTBase value)
     {
@@ -81,7 +111,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagByte with the given byte value into the map with the given string key.
+     * 将具有给定字节值的新 NBTTagByte 存储到具有给定字符串键的映射中。
      */
     public void setByte(String key, byte value)
     {
@@ -89,7 +119,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagShort with the given short value into the map with the given string key.
+     * 将具有给定短值的新 NBTTagShort 存储到具有给定字符串键的映射中。
      */
     public void setShort(String key, short value)
     {
@@ -97,7 +127,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagInt with the given integer value into the map with the given string key.
+     * 将具有给定整数值的新 NBTTagInt 存储到具有给定字符串键的映射中。
      */
     public void setInteger(String key, int value)
     {
@@ -105,7 +135,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagLong with the given long value into the map with the given string key.
+     * 将具有给定 long 值的新 NBTTagLong 存储到具有给定字符串键的映射中。
      */
     public void setLong(String key, long value)
     {
@@ -113,7 +143,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagFloat with the given float value into the map with the given string key.
+     * 将具有给定浮点值的新 NBTTagFloat 存储到具有给定字符串键的映射中。
      */
     public void setFloat(String key, float value)
     {
@@ -121,7 +151,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagDouble with the given double value into the map with the given string key.
+     * 将具有给定双精度值的新 NBTTagDouble 存储到具有给定字符串键的映射中。
      */
     public void setDouble(String key, double value)
     {
@@ -129,7 +159,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagString with the given string value into the map with the given string key.
+     * 将具有给定字符串值的新 NBTTagString 存储到具有给定字符串键的映射中。
      */
     public void setString(String key, String value)
     {
@@ -137,7 +167,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagByteArray with the given array as data into the map with the given string key.
+     * 将具有给定数组的新 NBTTagByteArray 作为数据存储到具有给定字符串键的映射中。
      */
     public void setByteArray(String key, byte[] value)
     {
@@ -145,7 +175,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores a new NBTTagIntArray with the given array as data into the map with the given string key.
+     * 将具有给定数组的新 NBTTagIntArray 作为数据存储到具有给定字符串键的映射中。
      */
     public void setIntArray(String key, int[] value)
     {
@@ -153,7 +183,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Stores the given boolean value as a NBTTagByte, storing 1 for true and 0 for false, using the given string key.
+     * 使用给定的字符串键将给定的布尔值存储为 NBTTagByte，存储 1 表示 true，0 表示 false。
      */
     public void setBoolean(String key, boolean value)
     {
@@ -161,21 +191,30 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * gets a generic tag with the specified name
+     * 获取具有指定名称的通用标签
      */
     public NBTBase getTag(String key)
     {
         return (NBTBase)this.tagMap.get(key);
     }
 
-    public byte func_150299_b(String key)
+    /**
+     * func_150299_b<br>
+     * 根据键获取对应的NBTBase对象类型标识
+     *
+     * @param key NBT标签的键值，用于唯一标识一个NBT标签
+     * @return 如果找到对应的NBTBase对象，则返回其类型标识；否则返回0
+     */
+    public byte getID(String key)
     {
+        // 从tagMap中根据key获取对应的NBTBase对象
         NBTBase nbtbase = (NBTBase)this.tagMap.get(key);
+        // 如果nbtbase不为空，则返回其类型标识；否则返回0
         return nbtbase != null ? nbtbase.getId() : 0;
     }
 
     /**
-     * Returns whether the given string has been previously stored as a key in the map.
+     * 返回给定字符串之前是否已作为键存储在映射中。
      */
     public boolean hasKey(String key)
     {
@@ -184,12 +223,12 @@ public class NBTTagCompound extends NBTBase
 
     public boolean hasKey(String key, int type)
     {
-        byte b0 = this.func_150299_b(key);
+        byte b0 = this.getID(key);
         return b0 == type ? true : (type != 99 ? false : b0 == 1 || b0 == 2 || b0 == 3 || b0 == 4 || b0 == 5 || b0 == 6);
     }
 
     /**
-     * Retrieves a byte value using the specified key, or 0 if no such key was stored.
+     * 使用指定的键检索字节值，如果没有存储此类键，则检索 0。
      */
     public byte getByte(String key)
     {
@@ -204,7 +243,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a short value using the specified key, or 0 if no such key was stored.
+     * 使用指定的键检索短值，如果没有存储此类键，则检索 0。
      */
     public short getShort(String key)
     {
@@ -219,7 +258,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves an integer value using the specified key, or 0 if no such key was stored.
+     * 使用指定的键检索整数值，如果没有存储此类键，则检索 0。
      */
     public int getInteger(String key)
     {
@@ -234,7 +273,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a long value using the specified key, or 0 if no such key was stored.
+     * 使用指定的键检索长整型值，如果没有存储此类键，则检索 0。
      */
     public long getLong(String key)
     {
@@ -249,7 +288,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a float value using the specified key, or 0 if no such key was stored.
+     * 使用指定的键检索浮点值，如果没有存储此类键，则检索 0。
      */
     public float getFloat(String key)
     {
@@ -264,7 +303,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a double value using the specified key, or 0 if no such key was stored.
+     * 使用指定的键检索双精度值，如果没有存储此类键，则检索 0。
      */
     public double getDouble(String key)
     {
@@ -279,7 +318,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a string value using the specified key, or an empty string if no such key was stored.
+     * 使用指定的键检索字符串值，如果没有存储此类键，则检索空字符串。
      */
     public String getString(String key)
     {
@@ -294,7 +333,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a byte array using the specified key, or a zero-length array if no such key was stored.
+     * 使用指定的键检索字节数组，如果没有存储此类键，则检索零长度数组。
      */
     public byte[] getByteArray(String key)
     {
@@ -309,7 +348,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves an int array using the specified key, or a zero-length array if no such key was stored.
+     * 使用指定的键检索 int 数组，如果没有存储此类键，则检索零长度数组。
      */
     public int[] getIntArray(String key)
     {
@@ -324,8 +363,8 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a NBTTagCompound subtag matching the specified key, or a new empty NBTTagCompound if no such key was
-     * stored.
+     * 检索与指定键匹配的 NBTTagCompound 子标签，如果没有这样的键，则检索新的空 NBTTagCompound
+     * 已存储。
      */
     public NBTTagCompound getCompoundTag(String key)
     {
@@ -340,13 +379,13 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * 获取具有给定名称的 NBTTagList 对象。参数：名称、NBTBase 类型
+     * 获取具有给定名称的 NBTTagList 对象。参数：名称、NBTBase类型
      */
     public NBTTagList getTagList(String key, int type)
     {
         try
         {
-            if (this.func_150299_b(key) != 9)
+            if (this.getID(key) != 9)
             {
                 return new NBTTagList();
             }
@@ -363,8 +402,8 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Retrieves a boolean value using the specified key, or false if no such key was stored. This uses the getByte
-     * method.
+     * 使用指定的键检索布尔值，如果没有存储此类键，则检索 false。这使用了 getByte
+     * 方法。
      */
     public boolean getBoolean(String key)
     {
@@ -372,7 +411,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Remove the specified tag.
+     * 删除指定的标签。
      */
     public void removeTag(String key)
     {
@@ -393,7 +432,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Return whether this compound has no tags.
+     * 返回该化合物是否没有标签。
      */
     public boolean hasNoTags()
     {
@@ -401,7 +440,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Create a crash report which indicates a NBT read error.
+     * 创建指示 NBT 读取错误的崩溃报告。
      */
     private CrashReport createCrashReport(final String p_82581_1_, final int p_82581_2_, ClassCastException p_82581_3_)
     {
@@ -428,7 +467,7 @@ public class NBTTagCompound extends NBTBase
     }
 
     /**
-     * Creates a clone of the tag.
+     * 创建标签的克隆。
      */
     public NBTBase copy()
     {
@@ -444,11 +483,11 @@ public class NBTTagCompound extends NBTBase
         return nbttagcompound;
     }
 
-    public boolean equals(Object p_equals_1_)
+    public boolean equals(Object obj)
     {
-        if (super.equals(p_equals_1_))
+        if (super.equals(obj))
         {
-            NBTTagCompound nbttagcompound = (NBTTagCompound)p_equals_1_;
+            NBTTagCompound nbttagcompound = (NBTTagCompound) obj;
             return this.tagMap.entrySet().equals(nbttagcompound.tagMap.entrySet());
         }
         else
@@ -491,7 +530,7 @@ public class NBTTagCompound extends NBTBase
 
         try
         {
-            nbtbase.func_152446_a(input, depth, sizeTracker);
+            nbtbase.readNBT(input, depth, sizeTracker);
             return nbtbase;
         }
         catch (IOException ioexception)

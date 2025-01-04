@@ -178,7 +178,7 @@ public class BlockSkull extends BlockContainer
                 {
                     itemstack.setTagCompound(new NBTTagCompound());
                     NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    NBTUtil.func_152460_a(nbttagcompound, tileentityskull.func_152108_a());
+                    NBTUtil.saveGameProfile(nbttagcompound, tileentityskull.func_152108_a());
                     itemstack.getTagCompound().setTag("SkullOwner", nbttagcompound);
                 }
 

@@ -264,7 +264,7 @@ public abstract class MapGenStructure extends MapGenBase
             else
             {
                 NBTTagCompound nbttagcompound = this.field_143029_e.func_143041_a();
-                Iterator iterator = nbttagcompound.func_150296_c().iterator();
+                Iterator iterator = nbttagcompound.getKeys().iterator();
 
                 while (iterator.hasNext())
                 {

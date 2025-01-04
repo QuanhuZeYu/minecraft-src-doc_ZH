@@ -29,7 +29,7 @@ public class TileEntitySkull extends TileEntity
         if (this.field_152110_j != null)
         {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-            NBTUtil.func_152460_a(nbttagcompound1, this.field_152110_j);
+            NBTUtil.saveGameProfile(nbttagcompound1, this.field_152110_j);
             compound.setTag("Owner", nbttagcompound1);
         }
     }
