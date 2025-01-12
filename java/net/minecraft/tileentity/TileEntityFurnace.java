@@ -436,8 +436,8 @@ public class TileEntityFurnace extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Returns true if automation can extract the given item in the given slot from the given side. Args: Slot, item,
-     * side
+     * 如果自动化可以从给定一侧提取给定槽中的给定项目，则返回 true。参数：插槽、项目、
+     * 边
      */
     public boolean canExtractItem(int p_102008_1_, ItemStack p_102008_2_, int p_102008_3_)
     {

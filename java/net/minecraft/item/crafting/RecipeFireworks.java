@@ -11,234 +11,238 @@ import net.minecraft.world.World;
 
 public class RecipeFireworks implements IRecipe
 {
-    private ItemStack field_92102_a;
+    private ItemStack craftedFireworkItem;
     private static final String __OBFID = "CL_00000083";
 
-    /**
-     * Used to check if a recipe matches current crafting inventory
-     */
-    public boolean matches(InventoryCrafting p_77569_1_, World p_77569_2_)
+
+    public boolean matches(InventoryCrafting craftingInventory, World world)
     {
-        this.field_92102_a = null;
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        int l = 0;
-        int i1 = 0;
-        int j1 = 0;
+        // 初始化结果物品为 null
+        this.craftedFireworkItem = null;
+        // 计数器，用于统计每种物品的数量
+        int gunpowderCount = 0;
+        int fireworkChargeCount = 0;
+        int dyeCount = 0;
+        int paperCount = 0;
+        int effectsCount = 0;
+        int additionalEffectCount = 0;
 
-        for (int k1 = 0; k1 < p_77569_1_.getSizeInventory(); ++k1)
+        // 遍历 craftingInventory 中的所有槽位
+        for (int slot = 0; slot < craftingInventory.getSizeInventory(); ++slot)
         {
-            ItemStack itemstack = p_77569_1_.getStackInSlot(k1);
+            ItemStack itemStack = craftingInventory.getStackInSlot(slot);
 
-            if (itemstack != null)
+            // 如果槽位非空，则检查物品类型并增加相应的计数器
+            if (itemStack != null)
             {
-                if (itemstack.getItem() == Items.gunpowder)
+                if (itemStack.getItem() == Items.gunpowder)
                 {
-                    ++j;
+                    ++gunpowderCount;
                 }
-                else if (itemstack.getItem() == Items.firework_charge)
+                else if (itemStack.getItem() == Items.firework_charge)
                 {
-                    ++l;
+                    ++fireworkChargeCount;
                 }
-                else if (itemstack.getItem() == Items.dye)
+                else if (itemStack.getItem() == Items.dye)
                 {
-                    ++k;
+                    ++dyeCount;
                 }
-                else if (itemstack.getItem() == Items.paper)
+                else if (itemStack.getItem() == Items.paper)
                 {
-                    ++i;
+                    ++paperCount;
                 }
-                else if (itemstack.getItem() == Items.glowstone_dust)
+                else if (itemStack.getItem() == Items.glowstone_dust)
                 {
-                    ++i1;
+                    ++effectsCount;
                 }
-                else if (itemstack.getItem() == Items.diamond)
+                else if (itemStack.getItem() == Items.diamond)
                 {
-                    ++i1;
+                    ++effectsCount;
                 }
-                else if (itemstack.getItem() == Items.fire_charge)
+                else if (itemStack.getItem() == Items.fire_charge)
                 {
-                    ++j1;
+                    ++additionalEffectCount;
                 }
-                else if (itemstack.getItem() == Items.feather)
+                else if (itemStack.getItem() == Items.feather)
                 {
-                    ++j1;
+                    ++additionalEffectCount;
                 }
-                else if (itemstack.getItem() == Items.gold_nugget)
+                else if (itemStack.getItem() == Items.gold_nugget)
                 {
-                    ++j1;
+                    ++additionalEffectCount;
                 }
                 else
                 {
-                    if (itemstack.getItem() != Items.skull)
+                    // 如果物品不是 skull，则返回 false，因为这些物品不符合任何配方
+                    if (itemStack.getItem() != Items.skull)
                     {
                         return false;
                     }
-
-                    ++j1;
+                    ++additionalEffectCount;
                 }
             }
         }
 
-        i1 += k + j1;
+        // 将 dyeCount 和 additionalEffectCount 合并到 effectsCount 中
+        effectsCount += dyeCount + additionalEffectCount;
 
-        if (j <= 3 && i <= 1)
+        // 检查烟花配方条件
+        if (gunpowderCount <= 3 && paperCount <= 1)
         {
-            NBTTagCompound nbttagcompound;
-            NBTTagCompound nbttagcompound1;
-
-            if (j >= 1 && i == 1 && i1 == 0)
+            // 检查是否匹配单个烟花的配方
+            if (gunpowderCount >= 1 && paperCount == 1 && effectsCount == 0)
             {
-                this.field_92102_a = new ItemStack(Items.fireworks);
+                // 创建一个新的烟花物品
+                this.craftedFireworkItem = new ItemStack(Items.fireworks);
+                NBTTagCompound fireworksTag = new NBTTagCompound();
 
-                nbttagcompound = new NBTTagCompound();
-                if (l > 0)
+                // 如果存在爆炸药水，则处理爆炸效果
+                if (fireworkChargeCount > 0)
                 {
-                    nbttagcompound1 = new NBTTagCompound();
-                    NBTTagList nbttaglist = new NBTTagList();
+                    NBTTagCompound explosionTag = new NBTTagCompound();
+                    NBTTagList explosionsList = new NBTTagList();
 
-                    for (int k2 = 0; k2 < p_77569_1_.getSizeInventory(); ++k2)
+                    // 遍历 craftingInventory 中的所有槽位
+                    for (int slot = 0; slot < craftingInventory.getSizeInventory(); ++slot)
                     {
-                        ItemStack itemstack3 = p_77569_1_.getStackInSlot(k2);
+                        ItemStack itemStack = craftingInventory.getStackInSlot(slot);
 
-                        if (itemstack3 != null && itemstack3.getItem() == Items.firework_charge && itemstack3.hasTagCompound() && itemstack3.getTagCompound().hasKey("Explosion", 10))
+                        // 检查是否为带有爆炸效果的烟花药水
+                        if (itemStack != null && itemStack.getItem() == Items.firework_charge && itemStack.hasTagCompound() && itemStack.getTagCompound().hasKey("Explosion", 10))
                         {
-                            nbttaglist.appendTag(itemstack3.getTagCompound().getCompoundTag("Explosion"));
+                            explosionsList.appendTag(itemStack.getTagCompound().getCompoundTag("Explosion"));
                         }
                     }
 
-                    nbttagcompound1.setTag("Explosions", nbttaglist);
-                    nbttagcompound1.setByte("Flight", (byte)j);
-                    nbttagcompound.setTag("Fireworks", nbttagcompound1);
+                    // 将爆炸效果列表和飞行时间设置到标签中
+                    explosionTag.setTag("Explosions", explosionsList);
+                    explosionTag.setByte("Flight", (byte)gunpowderCount);
+                    fireworksTag.setTag("Fireworks", explosionTag);
                 }
-                this.field_92102_a.setTagCompound(nbttagcompound); //Forge BugFix: NPE Protection
-
+                // 设置标签以防止 NPE
+                this.craftedFireworkItem.setTagCompound(fireworksTag);
                 return true;
             }
-            else if (j == 1 && i == 0 && l == 0 && k > 0 && j1 <= 1)
+            // 检查是否匹配烟花药水的配方
+            else if (gunpowderCount == 1 && paperCount == 0 && fireworkChargeCount == 0 && dyeCount > 0 && additionalEffectCount <= 1)
             {
-                this.field_92102_a = new ItemStack(Items.firework_charge);
-                nbttagcompound = new NBTTagCompound();
-                nbttagcompound1 = new NBTTagCompound();
-                byte b0 = 0;
-                ArrayList arraylist = new ArrayList();
+                // 创建一个新的烟花药水物品
+                this.craftedFireworkItem = new ItemStack(Items.firework_charge);
+                NBTTagCompound fireworksChargeTag = new NBTTagCompound();
+                NBTTagCompound explosionTag = new NBTTagCompound();
+                byte type = 0;
+                ArrayList<Integer> colorsList = new ArrayList<>();
 
-                for (int l1 = 0; l1 < p_77569_1_.getSizeInventory(); ++l1)
+                // 遍历 craftingInventory 中的所有槽位
+                for (int slot = 0; slot < craftingInventory.getSizeInventory(); ++slot)
                 {
-                    ItemStack itemstack2 = p_77569_1_.getStackInSlot(l1);
+                    ItemStack itemStack = craftingInventory.getStackInSlot(slot);
 
-                    if (itemstack2 != null)
+                    // 检查物品类型并设置相应的爆炸效果
+                    if (itemStack != null)
                     {
-                        if (itemstack2.getItem() == Items.dye)
+                        if (itemStack.getItem() == Items.dye)
                         {
-                            arraylist.add(Integer.valueOf(ItemDye.field_150922_c[itemstack2.getItemDamage()]));
+                            colorsList.add(ItemDye.field_150922_c[itemStack.getItemDamage()]);
                         }
-                        else if (itemstack2.getItem() == Items.glowstone_dust)
+                        else if (itemStack.getItem() == Items.glowstone_dust)
                         {
-                            nbttagcompound1.setBoolean("Flicker", true);
+                            explosionTag.setBoolean("Flicker", true);
                         }
-                        else if (itemstack2.getItem() == Items.diamond)
+                        else if (itemStack.getItem() == Items.diamond)
                         {
-                            nbttagcompound1.setBoolean("Trail", true);
+                            explosionTag.setBoolean("Trail", true);
                         }
-                        else if (itemstack2.getItem() == Items.fire_charge)
+                        else if (itemStack.getItem() == Items.fire_charge)
                         {
-                            b0 = 1;
+                            type = 1;
                         }
-                        else if (itemstack2.getItem() == Items.feather)
+                        else if (itemStack.getItem() == Items.feather)
                         {
-                            b0 = 4;
+                            type = 4;
                         }
-                        else if (itemstack2.getItem() == Items.gold_nugget)
+                        else if (itemStack.getItem() == Items.gold_nugget)
                         {
-                            b0 = 2;
+                            type = 2;
                         }
-                        else if (itemstack2.getItem() == Items.skull)
+                        else if (itemStack.getItem() == Items.skull)
                         {
-                            b0 = 3;
+                            type = 3;
                         }
                     }
                 }
 
-                int[] aint1 = new int[arraylist.size()];
-
-                for (int l2 = 0; l2 < aint1.length; ++l2)
+                // 将颜色列表转换为数组
+                int[] colors = new int[colorsList.size()];
+                for (int index = 0; index < colors.length; ++index)
                 {
-                    aint1[l2] = ((Integer)arraylist.get(l2)).intValue();
+                    colors[index] = colorsList.get(index);
                 }
 
-                nbttagcompound1.setIntArray("Colors", aint1);
-                nbttagcompound1.setByte("Type", b0);
-                nbttagcompound.setTag("Explosion", nbttagcompound1);
-                this.field_92102_a.setTagCompound(nbttagcompound);
+                // 设置爆炸效果的颜色和类型
+                explosionTag.setIntArray("Colors", colors);
+                explosionTag.setByte("Type", type);
+                fireworksChargeTag.setTag("Explosion", explosionTag);
+                this.craftedFireworkItem.setTagCompound(fireworksChargeTag);
                 return true;
             }
-            else if (j == 0 && i == 0 && l == 1 && k > 0 && k == i1)
+            // 检查是否匹配添加渐变颜色到烟花药水的配方
+            else if (gunpowderCount == 0 && paperCount == 0 && fireworkChargeCount == 1 && dyeCount > 0 && dyeCount == effectsCount)
             {
-                ArrayList arraylist1 = new ArrayList();
+                ArrayList<Integer> fadeColorsList = new ArrayList<>();
 
-                for (int i2 = 0; i2 < p_77569_1_.getSizeInventory(); ++i2)
+                // 遍历 craftingInventory 中的所有槽位
+                for (int slot = 0; slot < craftingInventory.getSizeInventory(); ++slot)
                 {
-                    ItemStack itemstack1 = p_77569_1_.getStackInSlot(i2);
+                    ItemStack itemStack = craftingInventory.getStackInSlot(slot);
 
-                    if (itemstack1 != null)
+                    // 检查物品类型并设置相应的渐变颜色
+                    if (itemStack != null)
                     {
-                        if (itemstack1.getItem() == Items.dye)
+                        if (itemStack.getItem() == Items.dye)
                         {
-                            arraylist1.add(Integer.valueOf(ItemDye.field_150922_c[itemstack1.getItemDamage()]));
+                            fadeColorsList.add(ItemDye.field_150922_c[itemStack.getItemDamage()]);
                         }
-                        else if (itemstack1.getItem() == Items.firework_charge)
+                        else if (itemStack.getItem() == Items.firework_charge)
                         {
-                            this.field_92102_a = itemstack1.copy();
-                            this.field_92102_a.stackSize = 1;
+                            this.craftedFireworkItem = itemStack.copy();
+                            this.craftedFireworkItem.stackSize = 1;
                         }
                     }
                 }
 
-                int[] aint = new int[arraylist1.size()];
-
-                for (int j2 = 0; j2 < aint.length; ++j2)
+                // 将渐变颜色列表转换为数组
+                int[] fadeColors = new int[fadeColorsList.size()];
+                for (int index = 0; index < fadeColors.length; ++index)
                 {
-                    aint[j2] = ((Integer)arraylist1.get(j2)).intValue();
+                    fadeColors[index] = fadeColorsList.get(index);
                 }
 
-                if (this.field_92102_a != null && this.field_92102_a.hasTagCompound())
+                // 检查是否已设置标签
+                if (this.craftedFireworkItem != null && this.craftedFireworkItem.hasTagCompound())
                 {
-                    NBTTagCompound nbttagcompound2 = this.field_92102_a.getTagCompound().getCompoundTag("Explosion");
-
-                    if (nbttagcompound2 == null)
+                    NBTTagCompound explosionTag = this.craftedFireworkItem.getTagCompound().getCompoundTag("Explosion");
+                    // 如果存在爆炸效果标签，则设置渐变颜色
+                    if (explosionTag != null)
                     {
-                        return false;
-                    }
-                    else
-                    {
-                        nbttagcompound2.setIntArray("FadeColors", aint);
+                        explosionTag.setIntArray("FadeColors", fadeColors);
                         return true;
                     }
                 }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
             }
         }
-        else
-        {
-            return false;
-        }
+        // 如果不匹配任何配方，则返回 false
+        return false;
     }
 
+
+
     /**
-     * Returns an Item that is the result of this recipe
+     * 返回一个项目，该项目是该配方的结果
      */
     public ItemStack getCraftingResult(InventoryCrafting p_77572_1_)
     {
-        return this.field_92102_a.copy();
+        return this.craftedFireworkItem.copy();
     }
 
     /**
@@ -251,6 +255,6 @@ public class RecipeFireworks implements IRecipe
 
     public ItemStack getRecipeOutput()
     {
-        return this.field_92102_a;
+        return this.craftedFireworkItem;
     }
 }

@@ -15,7 +15,7 @@ import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 
 public class SlotCrafting extends Slot
 {
-    /** The craft matrix inventory linked to this result slot. */
+    /** 链接到此结果槽的工艺矩阵库存。 */
     private final IInventory craftMatrix;
     /** The player that is using the GUI where this slot resides. */
     private EntityPlayer thePlayer;
@@ -23,12 +23,15 @@ public class SlotCrafting extends Slot
     private int amountCrafted;
     private static final String __OBFID = "CL_00001761";
 
-    public SlotCrafting(EntityPlayer p_i1823_1_, IInventory p_i1823_2_, IInventory p_i1823_3_, int p_i1823_4_, int p_i1823_5_, int p_i1823_6_)
+    public SlotCrafting(EntityPlayer player, IInventory craftMatrixInventory, IInventory craftResultInventory, int slotIndex, int xPosition, int yPosition)
     {
-        super(p_i1823_3_, p_i1823_4_, p_i1823_5_, p_i1823_6_);
-        this.thePlayer = p_i1823_1_;
-        this.craftMatrix = p_i1823_2_;
+        super(craftResultInventory, slotIndex, xPosition, yPosition);
+        // 当前玩家
+        this.thePlayer = player;
+        // 工作台中的物品矩阵
+        this.craftMatrix = craftMatrixInventory;
     }
+
 
     /**
      * Check if the stack is a valid item for this slot. Always true beside for the armor slots.
@@ -53,8 +56,8 @@ public class SlotCrafting extends Slot
     }
 
     /**
-     * the itemStack passed in is the output - ie, iron ingots, and pickaxes, not ore and wood. Typically increases an
-     * internal count then calls onCrafting(item).
+     * 传入的 itemStack 是输出 - 即铁锭和镐，而不是矿石和木材。通常会增加一个
+     * 内部计数然后调用 onCrafting(item)。
      */
     protected void onCrafting(ItemStack p_75210_1_, int p_75210_2_)
     {
@@ -63,100 +66,122 @@ public class SlotCrafting extends Slot
     }
 
     /**
-     * the itemStack passed in is the output - ie, iron ingots, and pickaxes, not ore and wood.
+     * 传入的 itemStack 是输出 - 即铁锭和镐，而不是矿石和木材。
      */
-    protected void onCrafting(ItemStack p_75208_1_)
+    protected void onCrafting(ItemStack craftedItem)
     {
-        p_75208_1_.onCrafting(this.thePlayer.worldObj, this.thePlayer, this.amountCrafted);
+        // 调用物品的onCrafting方法
+        craftedItem.onCrafting(this.thePlayer.worldObj, this.thePlayer, this.amountCrafted);
         this.amountCrafted = 0;
 
-        if (p_75208_1_.getItem() == Item.getItemFromBlock(Blocks.crafting_table))
+        // 检查并添加制作工作台的成就
+        if (craftedItem.getItem() == Item.getItemFromBlock(Blocks.crafting_table))
         {
             this.thePlayer.addStat(AchievementList.buildWorkBench, 1);
         }
 
-        if (p_75208_1_.getItem() instanceof ItemPickaxe)
+        // 检查并添加制作镐的成就
+        if (craftedItem.getItem() instanceof ItemPickaxe)
         {
             this.thePlayer.addStat(AchievementList.buildPickaxe, 1);
         }
 
-        if (p_75208_1_.getItem() == Item.getItemFromBlock(Blocks.furnace))
+        // 检查并添加制作熔炉的成就
+        if (craftedItem.getItem() == Item.getItemFromBlock(Blocks.furnace))
         {
             this.thePlayer.addStat(AchievementList.buildFurnace, 1);
         }
 
-        if (p_75208_1_.getItem() instanceof ItemHoe)
+        // 检查并添加制作镰刀的成就
+        if (craftedItem.getItem() instanceof ItemHoe)
         {
             this.thePlayer.addStat(AchievementList.buildHoe, 1);
         }
 
-        if (p_75208_1_.getItem() == Items.bread)
+        // 检查并添加制作面包的成就
+        if (craftedItem.getItem() == Items.bread)
         {
             this.thePlayer.addStat(AchievementList.makeBread, 1);
         }
 
-        if (p_75208_1_.getItem() == Items.cake)
+        // 检查并添加制作蛋糕的成就
+        if (craftedItem.getItem() == Items.cake)
         {
             this.thePlayer.addStat(AchievementList.bakeCake, 1);
         }
 
-        if (p_75208_1_.getItem() instanceof ItemPickaxe && ((ItemPickaxe)p_75208_1_.getItem()).func_150913_i() != Item.ToolMaterial.WOOD)
+        // 检查并添加制作更好的镐的成就（非木制镐）
+        if (craftedItem.getItem() instanceof ItemPickaxe && ((ItemPickaxe)craftedItem.getItem()).func_150913_i() != Item.ToolMaterial.WOOD)
         {
             this.thePlayer.addStat(AchievementList.buildBetterPickaxe, 1);
         }
 
-        if (p_75208_1_.getItem() instanceof ItemSword)
+        // 检查并添加制作剑的成就
+        if (craftedItem.getItem() instanceof ItemSword)
         {
             this.thePlayer.addStat(AchievementList.buildSword, 1);
         }
 
-        if (p_75208_1_.getItem() == Item.getItemFromBlock(Blocks.enchanting_table))
+        // 检查并添加制作附魔台的成就
+        if (craftedItem.getItem() == Item.getItemFromBlock(Blocks.enchanting_table))
         {
             this.thePlayer.addStat(AchievementList.enchantments, 1);
         }
 
-        if (p_75208_1_.getItem() == Item.getItemFromBlock(Blocks.bookshelf))
+        // 检查并添加制作书架的成就
+        if (craftedItem.getItem() == Item.getItemFromBlock(Blocks.bookshelf))
         {
             this.thePlayer.addStat(AchievementList.bookcase, 1);
         }
     }
 
-    public void onPickupFromSlot(EntityPlayer p_82870_1_, ItemStack p_82870_2_)
+
+    public void onPickupFromSlot(EntityPlayer player, ItemStack itemStackPickedUp)
     {
-        FMLCommonHandler.instance().firePlayerCraftingEvent(p_82870_1_, p_82870_2_, craftMatrix);
-        this.onCrafting(p_82870_2_);
+        // 触发玩家 crafting 事件
+        FMLCommonHandler.instance().firePlayerCraftingEvent(player, itemStackPickedUp, craftMatrix);
+        // 调用 onCrafting 方法处理 crafting 逻辑
+        this.onCrafting(itemStackPickedUp);
 
-        for (int i = 0; i < this.craftMatrix.getSizeInventory(); ++i)
+        // 遍历 crafting 矩阵中的所有槽位
+        for (int slotIndex = 0; slotIndex < this.craftMatrix.getSizeInventory(); ++slotIndex)
         {
-            ItemStack itemstack1 = this.craftMatrix.getStackInSlot(i);
+            ItemStack itemStackInSlot = this.craftMatrix.getStackInSlot(slotIndex);
 
-            if (itemstack1 != null)
+            // 如果槽位中有物品，则减少该物品的数量
+            if (itemStackInSlot != null)
             {
-                this.craftMatrix.decrStackSize(i, 1);
+                this.craftMatrix.decrStackSize(slotIndex, 1);
 
-                if (itemstack1.getItem().hasContainerItem(itemstack1))
+                // 检查该物品是否有容器物品
+                if (itemStackInSlot.getItem().hasContainerItem(itemStackInSlot))
                 {
-                    ItemStack itemstack2 = itemstack1.getItem().getContainerItem(itemstack1);
+                    ItemStack containerItemStack = itemStackInSlot.getItem().getContainerItem(itemStackInSlot);
 
-                    if (itemstack2 != null && itemstack2.isItemStackDamageable() && itemstack2.getItemDamage() > itemstack2.getMaxDamage())
+                    // 如果容器物品损坏，则触发销毁物品事件并继续下一轮循环
+                    if (containerItemStack != null && containerItemStack.isItemStackDamageable() && containerItemStack.getItemDamage() > containerItemStack.getMaxDamage())
                     {
-                        MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(thePlayer, itemstack2));
+                        MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, containerItemStack));
                         continue;
                     }
 
-                    if (!itemstack1.getItem().doesContainerItemLeaveCraftingGrid(itemstack1) || !this.thePlayer.inventory.addItemStackToInventory(itemstack2))
+                    // 如果容器物品不应留在 crafting 网格中，或者无法添加到玩家的 inventory 中，则进行相应处理
+                    if (!itemStackInSlot.getItem().doesContainerItemLeaveCraftingGrid(itemStackInSlot) || !player.inventory.addItemStackToInventory(containerItemStack))
                     {
-                        if (this.craftMatrix.getStackInSlot(i) == null)
+                        // 如果槽位为空，则将容器物品放回该槽位
+                        if (this.craftMatrix.getStackInSlot(slotIndex) == null)
                         {
-                            this.craftMatrix.setInventorySlotContents(i, itemstack2);
+                            this.craftMatrix.setInventorySlotContents(slotIndex, containerItemStack);
                         }
+                        // 否则，将容器物品丢弃到玩家所在的世界中
                         else
                         {
-                            this.thePlayer.dropPlayerItemWithRandomChoice(itemstack2, false);
+                            player.dropPlayerItemWithRandomChoice(containerItemStack, false);
                         }
                     }
                 }
             }
         }
     }
+
 }

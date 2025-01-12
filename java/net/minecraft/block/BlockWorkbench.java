@@ -13,9 +13,9 @@ import net.minecraft.world.World;
 public class BlockWorkbench extends Block
 {
     @SideOnly(Side.CLIENT)
-    private IIcon field_150035_a;
+    private IIcon iIconTop;
     @SideOnly(Side.CLIENT)
-    private IIcon field_150034_b;
+    private IIcon iIconFront;
     private static final String __OBFID = "CL_00000221";
 
     protected BlockWorkbench()
@@ -30,19 +30,19 @@ public class BlockWorkbench extends Block
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int side, int meta)
     {
-        return side == 1 ? this.field_150035_a : (side == 0 ? Blocks.planks.getBlockTextureFromSide(side) : (side != 2 && side != 4 ? this.blockIcon : this.field_150034_b));
+        return side == 1 ? this.iIconTop : (side == 0 ? Blocks.planks.getBlockTextureFromSide(side) : (side != 2 && side != 4 ? this.blockIcon : this.iIconFront));
     }
 
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg)
     {
         this.blockIcon = reg.registerIcon(this.getTextureName() + "_side");
-        this.field_150035_a = reg.registerIcon(this.getTextureName() + "_top");
-        this.field_150034_b = reg.registerIcon(this.getTextureName() + "_front");
+        this.iIconTop = reg.registerIcon(this.getTextureName() + "_top");
+        this.iIconFront = reg.registerIcon(this.getTextureName() + "_front");
     }
 
     /**
-     * Called upon block activation (right click on the block.)
+     * 在块激活时调用（右键单击块。）
      */
     public boolean onBlockActivated(World worldIn, int x, int y, int z, EntityPlayer player, int side, float subX, float subY, float subZ)
     {

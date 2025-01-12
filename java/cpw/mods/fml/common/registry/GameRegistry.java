@@ -60,44 +60,41 @@ import cpw.mods.fml.common.LoaderException;
 import cpw.mods.fml.common.LoaderState;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 
-public class GameRegistry
-{
+/**
+ * 游戏世界生成器注册类
+ * 提供静态方法用于注册世界生成器，这些生成器用于在世界中插入新的方块类型。
+ */
+public class GameRegistry {
     private static Set<IWorldGenerator> worldGenerators = Sets.newHashSet();
     private static Map<IWorldGenerator, Integer> worldGeneratorIndex = Maps.newHashMap();
     private static List<IFuelHandler> fuelHandlers = Lists.newArrayList();
     private static List<IWorldGenerator> sortedGeneratorList;
 
     /**
-     * Register a world generator - something that inserts new block types into the world
+     * 注册一个世界生成器 - 用于在世界中插入新的方块类型。
      *
-     * @param generator the generator
-     * @param modGenerationWeight a weight to assign to this generator. Heavy weights tend to sink to the bottom of
-     * list of world generators (i.e. they run later)
+     * @param generator             实现了 {@link IWorldGenerator} 接口的世界生成器实例。
+     * @param modGenerationWeight   为该生成器分配的权重值。权重值较高的生成器通常会在世界生成器列表中下沉至底部，即它们会在其他生成器之后运行。
      */
-    public static void registerWorldGenerator(IWorldGenerator generator, int modGenerationWeight)
-    {
+    public static void registerWorldGenerator(IWorldGenerator generator, int modGenerationWeight) {
         worldGenerators.add(generator);
         worldGeneratorIndex.put(generator, modGenerationWeight);
-        if (sortedGeneratorList != null)
-        {
+        if (sortedGeneratorList != null) {
             sortedGeneratorList = null;
         }
     }
 
     /**
-     * Callback hook for world gen - if your mod wishes to add extra mod related generation to the world
-     * call this
+     * 回调钩子用于世界生成 - 如果您的模组希望在世界中添加额外的模组相关生成内容，请调用此方法。
      *
-     * @param chunkX
-     * @param chunkZ
-     * @param world
-     * @param chunkGenerator
-     * @param chunkProvider
+     * @param chunkX           生成的区块的 X 坐标。
+     * @param chunkZ           生成的区块的 Z 坐标。
+     * @param world            当前生成区块的世界实例。
+     * @param chunkGenerator   用于生成区块的提供者实例。
+     * @param chunkProvider    用于生成区块的提供者实例。
      */
-    public static void generateWorld(int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider)
-    {
-        if (sortedGeneratorList == null)
-        {
+    public static void generateWorld(int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider) {
+        if (sortedGeneratorList == null) {
             computeSortedGeneratorList();
         }
         long worldSeed = world.getSeed();
@@ -106,8 +103,7 @@ public class GameRegistry
         long zSeed = fmlRandom.nextLong() >> 2 + 1L;
         long chunkSeed = (xSeed * chunkX + zSeed * chunkZ) ^ worldSeed;
 
-        for (IWorldGenerator generator : sortedGeneratorList)
-        {
+        for (IWorldGenerator generator : sortedGeneratorList) {
             fmlRandom.setSeed(chunkSeed);
             generator.generate(fmlRandom, chunkX, chunkZ, world, chunkGenerator, chunkProvider);
         }

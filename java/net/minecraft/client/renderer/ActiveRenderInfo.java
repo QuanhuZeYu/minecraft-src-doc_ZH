@@ -47,25 +47,50 @@ public class ActiveRenderInfo
     /**
      * Updates the current render info and camera location based on entity look angles and 1st/3rd person view mode
      */
-    public static void updateRenderInfo(EntityPlayer p_74583_0_, boolean p_74583_1_)
-    {
+    public static void updateRenderInfo(EntityPlayer player, boolean isMirror) {
+        // 获取当前的模型视图矩阵
         GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelview);
+
+        // 获取当前的投影矩阵
         GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projection);
+
+        // 获取当前的视口（Viewport）参数
         GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
-        float f = (float)((viewport.get(0) + viewport.get(2)) / 2);
-        float f1 = (float)((viewport.get(1) + viewport.get(3)) / 2);
-        GLU.gluUnProject(f, f1, 0.0F, modelview, projection, viewport, objectCoords);
-        objectX = objectCoords.get(0);
-        objectY = objectCoords.get(1);
-        objectZ = objectCoords.get(2);
-        int i = p_74583_1_ ? 1 : 0;
-        float f2 = p_74583_0_.rotationPitch;
-        float f3 = p_74583_0_.rotationYaw;
-        rotationX = MathHelper.cos(f3 * (float)Math.PI / 180.0F) * (float)(1 - i * 2);
-        rotationZ = MathHelper.sin(f3 * (float)Math.PI / 180.0F) * (float)(1 - i * 2);
-        rotationYZ = -rotationZ * MathHelper.sin(f2 * (float)Math.PI / 180.0F) * (float)(1 - i * 2);
-        rotationXY = rotationX * MathHelper.sin(f2 * (float)Math.PI / 180.0F) * (float)(1 - i * 2);
-        rotationXZ = MathHelper.cos(f2 * (float)Math.PI / 180.0F);
+
+        // 计算视口的中心点坐标（屏幕空间中的 x 和 y 中心）
+        float viewportCenterX = (float) ((viewport.get(0) + viewport.get(2)) / 2);
+        float viewportCenterY = (float) ((viewport.get(1) + viewport.get(3)) / 2);
+
+        // 使用 GLU 的 gluUnProject 将屏幕中心的 2D 坐标转换为世界空间中的 3D 坐标
+        GLU.gluUnProject(viewportCenterX, viewportCenterY, 0.0F, modelview, projection, viewport, objectCoords);
+
+        // 将计算出的世界空间坐标保存到静态变量中
+        objectX = objectCoords.get(0); // 世界坐标中的 X
+        objectY = objectCoords.get(1); // 世界坐标中的 Y
+        objectZ = objectCoords.get(2); // 世界坐标中的 Z
+
+        // 如果 isMirror 为 true，则将旋转相关的计算值反转
+        int mirrorMultiplier = isMirror ? 1 : 0;
+
+        // 获取玩家的视角旋转（俯仰角和偏航角）
+        float playerPitch = player.rotationPitch; // 俯仰角（上下视角）
+        float playerYaw = player.rotationYaw;     // 偏航角（左右视角）
+
+        // 计算基于玩家旋转的方向向量
+        // X 方向分量，基于偏航角的余弦值
+        rotationX = MathHelper.cos(playerYaw * (float) Math.PI / 180.0F) * (float) (1 - mirrorMultiplier * 2);
+
+        // Z 方向分量，基于偏航角的正弦值
+        rotationZ = MathHelper.sin(playerYaw * (float) Math.PI / 180.0F) * (float) (1 - mirrorMultiplier * 2);
+
+        // YZ 平面的旋转分量，基于俯仰角和偏航角
+        rotationYZ = -rotationZ * MathHelper.sin(playerPitch * (float) Math.PI / 180.0F) * (float) (1 - mirrorMultiplier * 2);
+
+        // XY 平面的旋转分量，基于俯仰角和偏航角
+        rotationXY = rotationX * MathHelper.sin(playerPitch * (float) Math.PI / 180.0F) * (float) (1 - mirrorMultiplier * 2);
+
+        // XZ 平面的旋转分量，基于俯仰角的余弦值
+        rotationXZ = MathHelper.cos(playerPitch * (float) Math.PI / 180.0F);
     }
 
     /**

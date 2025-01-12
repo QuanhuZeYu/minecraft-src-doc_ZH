@@ -669,7 +669,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
     }
 
     /**
-     * get the next window id to use
+     * 获取下一个要使用的窗口ID
      */
     public void getNextWindowId()
     {
@@ -677,7 +677,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
     }
 
     /**
-     * Displays the crafting GUI for a workbench.
+     * 显示工作台的制作 GUI。
      */
     public void displayGUIWorkbench(int p_71058_1_, int p_71058_2_, int p_71058_3_)
     {

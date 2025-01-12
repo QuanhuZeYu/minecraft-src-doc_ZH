@@ -7,14 +7,31 @@ import net.minecraft.world.World;
 
 public class ShapedRecipes implements IRecipe
 {
-    /** How many horizontal slots this recipe is wide. */
+    /**
+     * 配方的水平宽度（即每行的物品槽数量）。
+     */
     public final int recipeWidth;
-    /** How many vertical slots this recipe uses. */
+
+    /**
+     * 配方的垂直高度（即行数）。
+     */
     public final int recipeHeight;
-    /** Is a array of ItemStack that composes the recipe. */
+
+    /**
+     * 组成配方的物品栈数组。
+     * 数组的每个元素对应配方模式中的一个物品。
+     */
     public final ItemStack[] recipeItems;
-    /** Is the ItemStack that you get when craft the recipe. */
+
+    /**
+     * 配方的输出物品栈，即通过该配方制作得到的物品。
+     */
     private ItemStack recipeOutput;
+
+    /**
+     * 标记配方是否需要特定的条件（例如是否必须在工作台中合成）。
+     * 默认值为false。
+     */
     private boolean field_92101_f;
     private static final String __OBFID = "CL_00000093";
 
@@ -106,7 +123,7 @@ public class ShapedRecipes implements IRecipe
     }
 
     /**
-     * Returns an Item that is the result of this recipe
+     * 返回一个项目，该项目是该配方的结果
      */
     public ItemStack getCraftingResult(InventoryCrafting p_77572_1_)
     {
@@ -129,7 +146,7 @@ public class ShapedRecipes implements IRecipe
     }
 
     /**
-     * Returns the size of the recipe area
+     * 返回配方区域的大小
      */
     public int getRecipeSize()
     {

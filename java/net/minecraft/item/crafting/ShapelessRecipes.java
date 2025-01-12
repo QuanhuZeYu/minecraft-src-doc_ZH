@@ -9,9 +9,9 @@ import net.minecraft.world.World;
 
 public class ShapelessRecipes implements IRecipe
 {
-    /** Is the ItemStack that you get when craft the recipe. */
+    /** 是制作配方时得到的 ItemStack。 */
     private final ItemStack recipeOutput;
-    /** Is a List of ItemStack that composes the recipe. */
+    /** 是组成配方的 ItemStack 的列表。 */
     public final List<net.minecraft.item.ItemStack> recipeItems;
     private static final String __OBFID = "CL_00000094";
 

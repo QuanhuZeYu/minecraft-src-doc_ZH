@@ -22,70 +22,59 @@ public class ContainerPlayer extends Container
     private final EntityPlayer thePlayer;
     private static final String __OBFID = "CL_00001754";
 
-    public ContainerPlayer(final InventoryPlayer p_i1819_1_, boolean p_i1819_2_, EntityPlayer p_i1819_3_)
-    {
-        this.isLocalWorld = p_i1819_2_;
-        this.thePlayer = p_i1819_3_;
-        this.addSlotToContainer(new SlotCrafting(p_i1819_1_.player, this.craftMatrix, this.craftResult, 0, 144, 36));
-        int i;
-        int j;
+    public ContainerPlayer(final InventoryPlayer inventoryPlayer, boolean isLocalWorld, EntityPlayer player) {
+        this.isLocalWorld = isLocalWorld;
+        this.thePlayer = player;
 
-        for (i = 0; i < 2; ++i)
-        {
-            for (j = 0; j < 2; ++j)
-            {
-                this.addSlotToContainer(new Slot(this.craftMatrix, j + i * 2, 88 + j * 18, 26 + i * 18));
+        // 添加工艺结果槽
+        this.addSlotToContainer(new SlotCrafting(inventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 144, 36));
+
+        // 添加工艺矩阵槽
+        for (int row = 0; row < 2; ++row) {
+            for (int col = 0; col < 2; ++col) {
+                this.addSlotToContainer(new Slot(this.craftMatrix, col + row * 2, 88 + col * 18, 26 + row * 18));
             }
         }
 
-        for (i = 0; i < 4; ++i)
-        {
-            final int k = i;
-            this.addSlotToContainer(new Slot(p_i1819_1_, p_i1819_1_.getSizeInventory() - 1 - i, 8, 8 + i * 18)
-            {
+        // 添加盔甲槽
+        for (int armorIndex = 0; armorIndex < 4; ++armorIndex) {
+            final int k = armorIndex;
+            this.addSlotToContainer(new Slot(inventoryPlayer, inventoryPlayer.getSizeInventory() - 1 - armorIndex, 8, 8 + armorIndex * 18) {
                 private static final String __OBFID = "CL_00001755";
-                /**
-                 * Returns the maximum stack size for a given slot (usually the same as getInventoryStackLimit(), but 1
-                 * in the case of armor slots)
-                 */
-                public int getSlotStackLimit()
-                {
-                    return 1;
+
+                @Override
+                public int getSlotStackLimit() {
+                    return 1; // 盔甲槽的最大堆叠数为1
                 }
-                /**
-                 * Check if the stack is a valid item for this slot. Always true beside for the armor slots.
-                 */
-                public boolean isItemValid(ItemStack stack)
-                {
-                    if (stack == null) return false;
-                    return stack.getItem().isValidArmor(stack, k, thePlayer);
+
+                @Override
+                public boolean isItemValid(ItemStack stack) {
+                    return stack != null && stack.getItem().isValidArmor(stack, k, thePlayer);
                 }
-                /**
-                 * Returns the icon index on items.png that is used as background image of the slot.
-                 */
+
+                @Override
                 @SideOnly(Side.CLIENT)
-                public IIcon getBackgroundIconIndex()
-                {
+                public IIcon getBackgroundIconIndex() {
                     return ItemArmor.func_94602_b(k);
                 }
             });
         }
 
-        for (i = 0; i < 3; ++i)
-        {
-            for (j = 0; j < 9; ++j)
-            {
-                this.addSlotToContainer(new Slot(p_i1819_1_, j + (i + 1) * 9, 8 + j * 18, 84 + i * 18));
+        // 添加玩家主界面槽
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                this.addSlotToContainer(new Slot(inventoryPlayer, col + (row + 1) * 9, 8 + col * 18, 84 + row * 18));
             }
         }
 
-        for (i = 0; i < 9; ++i)
-        {
-            this.addSlotToContainer(new Slot(p_i1819_1_, i, 8 + i * 18, 142));
+        // 添加玩家快捷栏槽
+        for (int col = 0; col < 9; ++col) {
+            this.addSlotToContainer(new Slot(inventoryPlayer, col, 8 + col * 18, 142));
         }
 
         this.onCraftMatrixChanged(this.craftMatrix);
     }
+
 
     /**
      * Callback for when the crafting matrix is changed.

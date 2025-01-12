@@ -15,14 +15,14 @@ import net.minecraft.world.World;
 
 public class CraftingManager
 {
-    /** The static instance of this class */
+    /** 该类的静态实例 */
     private static final CraftingManager instance = new CraftingManager();
-    /** A list of all the recipes added */
-    private List recipes = new ArrayList();
+    /** 添加的所有食谱的列表 */
+    private List<IRecipe> recipes = new ArrayList<>();
     private static final String __OBFID = "CL_00000090";
 
     /**
-     * Returns the static instance of this class
+     * 返回该类的静态实例
      */
     public static final CraftingManager getInstance()
     {
@@ -171,78 +171,77 @@ public class CraftingManager
         });
     }
 
-    public ShapedRecipes addRecipe(ItemStack p_92103_1_, Object ... p_92103_2_)
-    {
-        String s = "";
-        int i = 0;
-        int j = 0;
-        int k = 0;
+    /**
+     * 添加一个成形配方到配方管理器中。
+     * <p>
+     * 该方法根据提供的配方模式和物品构建一个新的成形配方，并将其添加到配方列表中。
+     * 配方模式由一系列字符串组成，每个字符串代表配方的一个水平行，字符串中的字符对应不同的物品。
+     * 物品由一系列字符和对应的物品对象（Item, Block, ItemStack）组成。
+     * </p>
+     *
+     * @param resultItem 配方的结果物品，即通过配方可以得到的物品。
+     * @param recipePatternAndIngredients 配方模式和物品的可变参数数组。
+     *                                    前面部分是配方模式，每个元素是一个字符串，代表配方的一个水平行。
+     *                                    后面部分是物品字符和对应的物品对象的交替排列。
+     *                                    物品对象可以是 Item 类型、Block 类型或者 ItemStack 类型。
+     * @return 返回新创建的 ShapedRecipes 对象。
+     * @throws IllegalArgumentException 如果 recipePatternAndIngredients 参数格式不正确。
+     */
+    public ShapedRecipes addRecipe(ItemStack resultItem, Object... recipePatternAndIngredients) {
+        String recipePattern = "";
+        int patternHeight = 0;
+        int patternWidth = 0;
+        int patternIndex = 0;
 
-        if (p_92103_2_[i] instanceof String[])
-        {
-            String[] astring = (String[])((String[])p_92103_2_[i++]);
-
-            for (int l = 0; l < astring.length; ++l)
-            {
-                String s1 = astring[l];
-                ++k;
-                j = s1.length();
-                s = s + s1;
+        // 解析配方模式
+        if (recipePatternAndIngredients[patternIndex] instanceof String[]) {
+            String[] patternLines = (String[]) recipePatternAndIngredients[patternIndex++];
+            for (String patternLine : patternLines) {
+                ++patternHeight;
+                patternWidth = patternLine.length();
+                recipePattern += patternLine;
             }
-        }
-        else
-        {
-            while (p_92103_2_[i] instanceof String)
-            {
-                String s2 = (String)p_92103_2_[i++];
-                ++k;
-                j = s2.length();
-                s = s + s2;
-            }
-        }
-
-        HashMap hashmap;
-
-        for (hashmap = new HashMap(); i < p_92103_2_.length; i += 2)
-        {
-            Character character = (Character)p_92103_2_[i];
-            ItemStack itemstack1 = null;
-
-            if (p_92103_2_[i + 1] instanceof Item)
-            {
-                itemstack1 = new ItemStack((Item)p_92103_2_[i + 1]);
-            }
-            else if (p_92103_2_[i + 1] instanceof Block)
-            {
-                itemstack1 = new ItemStack((Block)p_92103_2_[i + 1], 1, 32767);
-            }
-            else if (p_92103_2_[i + 1] instanceof ItemStack)
-            {
-                itemstack1 = (ItemStack)p_92103_2_[i + 1];
-            }
-
-            hashmap.put(character, itemstack1);
-        }
-
-        ItemStack[] aitemstack = new ItemStack[j * k];
-
-        for (int i1 = 0; i1 < j * k; ++i1)
-        {
-            char c0 = s.charAt(i1);
-
-            if (hashmap.containsKey(Character.valueOf(c0)))
-            {
-                aitemstack[i1] = ((ItemStack)hashmap.get(Character.valueOf(c0))).copy();
-            }
-            else
-            {
-                aitemstack[i1] = null;
+        } else {
+            while (recipePatternAndIngredients[patternIndex] instanceof String) {
+                String patternLine = (String) recipePatternAndIngredients[patternIndex++];
+                ++patternHeight;
+                patternWidth = patternLine.length();
+                recipePattern += patternLine;
             }
         }
 
-        ShapedRecipes shapedrecipes = new ShapedRecipes(j, k, aitemstack, p_92103_1_);
-        this.recipes.add(shapedrecipes);
-        return shapedrecipes;
+        // 解析配方中的物品
+        HashMap<Character, ItemStack> ingredientMap = new HashMap<>();
+        for (; patternIndex < recipePatternAndIngredients.length; patternIndex += 2) {
+            Character ingredientChar = (Character) recipePatternAndIngredients[patternIndex];
+            ItemStack ingredientStack = null;
+
+            if (recipePatternAndIngredients[patternIndex + 1] instanceof Item) {
+                ingredientStack = new ItemStack((Item) recipePatternAndIngredients[patternIndex + 1]);
+            } else if (recipePatternAndIngredients[patternIndex + 1] instanceof Block) {
+                ingredientStack = new ItemStack((Block) recipePatternAndIngredients[patternIndex + 1], 1, 32767);
+            } else if (recipePatternAndIngredients[patternIndex + 1] instanceof ItemStack) {
+                ingredientStack = (ItemStack) recipePatternAndIngredients[patternIndex + 1];
+            }
+
+            ingredientMap.put(ingredientChar, ingredientStack);
+        }
+
+        // 根据配方模式和物品映射创建物品栈数组
+        ItemStack[] recipeIngredients = new ItemStack[patternWidth * patternHeight];
+        for (int i = 0; i < patternWidth * patternHeight; ++i) {
+            char patternChar = recipePattern.charAt(i);
+            if (ingredientMap.containsKey(patternChar)) {
+                recipeIngredients[i] = ingredientMap.get(patternChar).copy();
+            } else {
+                recipeIngredients[i] = null;
+            }
+        }
+
+        // 创建新的 ShapedRecipes 对象并添加到配方列表中
+        ShapedRecipes newRecipe = new ShapedRecipes(patternWidth, patternHeight, recipeIngredients, resultItem);
+        this.recipes.add(newRecipe);
+        return newRecipe;
     }
 
     public void addShapelessRecipe(ItemStack p_77596_1_, Object ... p_77596_2_)
@@ -277,63 +276,74 @@ public class CraftingManager
         this.recipes.add(new ShapelessRecipes(p_77596_1_, arraylist));
     }
 
-    public ItemStack findMatchingRecipe(InventoryCrafting p_82787_1_, World p_82787_2_)
-    {
-        int i = 0;
-        ItemStack itemstack = null;
-        ItemStack itemstack1 = null;
-        int j;
+    public ItemStack findMatchingRecipe(InventoryCrafting craftingInventory, World world) {
+        // 记录非空物品栈的数量
+        int nonEmptyStackCount = 0;
+        // 第一个非空物品栈
+        ItemStack firstItemStack = null;
+        // 第二个非空物品栈
+        ItemStack secondItemStack = null;
 
-        for (j = 0; j < p_82787_1_.getSizeInventory(); ++j)
-        {
-            ItemStack itemstack2 = p_82787_1_.getStackInSlot(j);
+        // 遍历合成网格中的所有槽位
+        for (int slotIndex = 0; slotIndex < craftingInventory.getSizeInventory(); ++slotIndex) {
+            ItemStack currentStack = craftingInventory.getStackInSlot(slotIndex);
 
-            if (itemstack2 != null)
-            {
-                if (i == 0)
-                {
-                    itemstack = itemstack2;
+            if (currentStack != null) {
+                // 如果这是第一个非空物品栈，则记录它
+                if (nonEmptyStackCount == 0) {
+                    firstItemStack = currentStack;
+                }
+                // 如果这是第二个非空物品栈，则记录它
+                else if (nonEmptyStackCount == 1) {
+                    secondItemStack = currentStack;
                 }
 
-                if (i == 1)
-                {
-                    itemstack1 = itemstack2;
-                }
-
-                ++i;
+                // 增加非空物品栈计数
+                ++nonEmptyStackCount;
             }
         }
 
-        if (i == 2 && itemstack.getItem() == itemstack1.getItem() && itemstack.stackSize == 1 && itemstack1.stackSize == 1 && itemstack.getItem().isRepairable())
+        // 检查是否仅有两个物品栈且它们可以修复
+        if (nonEmptyStackCount == 2 &&
+            firstItemStack.getItem() == secondItemStack.getItem() &&
+            firstItemStack.stackSize == 1 &&
+            secondItemStack.stackSize == 1 &&
+            firstItemStack.getItem().isRepairable())
         {
-            Item item = itemstack.getItem();
-            int j1 = item.getMaxDamage() - itemstack.getItemDamageForDisplay();
-            int k = item.getMaxDamage() - itemstack1.getItemDamageForDisplay();
-            int l = j1 + k + item.getMaxDamage() * 5 / 100;
-            int i1 = item.getMaxDamage() - l;
+            Item item = firstItemStack.getItem();
+            // 计算第一个物品栈的剩余耐久度
+            int firstStackRemainingDamage = item.getMaxDamage() - firstItemStack.getItemDamageForDisplay();
+            // 计算第二个物品栈的剩余耐久度
+            int secondStackRemainingDamage = item.getMaxDamage() - secondItemStack.getItemDamageForDisplay();
+            // 计算修复后的新耐久度
+            int newRemainingDamage = firstStackRemainingDamage + secondStackRemainingDamage + item.getMaxDamage() * 5 / 100;
+            int newDamageValue = item.getMaxDamage() - newRemainingDamage;
 
-            if (i1 < 0)
+            // 确保耐久度值不低于0
+            if (newDamageValue < 0)
             {
-                i1 = 0;
+                newDamageValue = 0;
             }
 
-            return new ItemStack(itemstack.getItem(), 1, i1);
+            // 返回修复后的物品
+            return new ItemStack(item, 1, newDamageValue);
         }
-        else
-        {
-            for (j = 0; j < this.recipes.size(); ++j)
-            {
-                IRecipe irecipe = (IRecipe)this.recipes.get(j);
+        else {
+            // 遍历所有注册的合成配方
+            for (int recipeIndex = 0; recipeIndex < this.recipes.size(); ++recipeIndex) {
+                IRecipe currentRecipe = (IRecipe)this.recipes.get(recipeIndex);
 
-                if (irecipe.matches(p_82787_1_, p_82787_2_))
-                {
-                    return irecipe.getCraftingResult(p_82787_1_);
+                // 如果当前配方匹配，则返回合成结果
+                if (currentRecipe.matches(craftingInventory, world)) {
+                    return currentRecipe.getCraftingResult(craftingInventory);
                 }
             }
 
+            // 如果没有匹配的配方，则返回null
             return null;
         }
     }
+
 
     /**
      * returns the List<> of all recipes

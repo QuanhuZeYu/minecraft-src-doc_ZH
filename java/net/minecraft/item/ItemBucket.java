@@ -88,13 +88,13 @@ public class ItemBucket extends Item
                     if (material == Material.water && l == 0)
                     {
                         worldIn.setBlockToAir(i, j, k);
-                        return this.func_150910_a(itemStackIn, player, Items.water_bucket);
+                        return this.handleItemUsage$$(itemStackIn, player, Items.water_bucket);
                     }
 
                     if (material == Material.lava && l == 0)
                     {
                         worldIn.setBlockToAir(i, j, k);
-                        return this.func_150910_a(itemStackIn, player, Items.lava_bucket);
+                        return this.handleItemUsage$$(itemStackIn, player, Items.lava_bucket);
                     }
                 }
                 else
@@ -150,26 +150,52 @@ public class ItemBucket extends Item
         }
     }
 
-    private ItemStack func_150910_a(ItemStack p_150910_1_, EntityPlayer p_150910_2_, Item p_150910_3_)
+    /**
+     * 处理物品栈的使用逻辑。
+     * 如果玩家处于创造模式，则直接返回物品栈。
+     * 如果玩家不是处于创造模式，且物品栈数量减少后为零，则返回一个新物品栈。
+     * 否则，将新物品添加到玩家的物品栏中，如果物品栏已满，则将其丢弃在玩家脚下。
+     *
+     * @param originalStack 原始物品栈
+     * @param player 使用物品的玩家
+     * @param newItem 要添加的新物品类型
+     * @return 使用后剩余的物品栈
+     */
+    private ItemStack handleItemUsage$$(ItemStack originalStack, EntityPlayer player, Item newItem)
     {
-        if (p_150910_2_.capabilities.isCreativeMode)
+        // 如果玩家处于创造模式，则不消耗物品
+        if (player.capabilities.isCreativeMode)
         {
-            return p_150910_1_;
-        }
-        else if (--p_150910_1_.stackSize <= 0)
-        {
-            return new ItemStack(p_150910_3_);
+            return originalStack;
         }
         else
         {
-            if (!p_150910_2_.inventory.addItemStackToInventory(new ItemStack(p_150910_3_)))
-            {
-                p_150910_2_.dropPlayerItemWithRandomChoice(new ItemStack(p_150910_3_, 1, 0), false);
-            }
+            // 减少物品栈的数量
+            originalStack.stackSize--;
 
-            return p_150910_1_;
+            // 如果物品栈数量变为零，则返回一个新的物品栈
+            if (originalStack.stackSize <= 0)
+            {
+                return new ItemStack(newItem);
+            }
+            else
+            {
+                // 创建新物品栈
+                ItemStack newStack = new ItemStack(newItem);
+
+                // 尝试将新物品添加到玩家的物品栏中
+                if (!player.inventory.addItemStackToInventory(newStack))
+                {
+                    // 如果物品栏已满，则将新物品丢弃在玩家脚下
+                    player.dropPlayerItemWithRandomChoice(newStack, false);
+                }
+
+                // 返回使用后剩余的物品栈
+                return originalStack;
+            }
         }
     }
+
 
     /**
      * Attempts to place the liquid contained inside the bucket.

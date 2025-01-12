@@ -46,8 +46,8 @@ public class OreDictionary
     public static final ArrayList<ItemStack> EMPTY_LIST = new UnmodifiableArrayList(Lists.newArrayList()); //ToDo: Unqualify to List when possible {1.8}
 
     /**
-     * Minecraft changed from -1 to Short.MAX_VALUE in 1.5 release for the "block wildcard". Use this in case it
-     * changes again.
+     * Minecraft 在 1.5 版本中针对“块通配符”从 -1 更改为 Short.MAX_VALUE。使用这个以防万一
+     * 再次改变。
      */
     public static final int WILDCARD_VALUE = Short.MAX_VALUE;
 

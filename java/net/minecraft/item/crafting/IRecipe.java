@@ -7,17 +7,17 @@ import net.minecraft.world.World;
 public interface IRecipe
 {
     /**
-     * Used to check if a recipe matches current crafting inventory
+     * 用于检查配方是否与当前的制作库存匹配
      */
     boolean matches(InventoryCrafting p_77569_1_, World p_77569_2_);
 
     /**
-     * Returns an Item that is the result of this recipe
+     * 返回一个项目，该项目是该配方的结果
      */
     ItemStack getCraftingResult(InventoryCrafting p_77572_1_);
 
     /**
-     * Returns the size of the recipe area
+     * 返回配方区域的大小
      */
     int getRecipeSize();
 

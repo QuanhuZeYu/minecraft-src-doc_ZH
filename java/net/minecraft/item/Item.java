@@ -641,7 +641,7 @@ public class Item
     }
 
     /**
-     * If this function returns true (or the item is damageable), the ItemStack's NBT tag will be sent to the client.
+     * 如果该函数返回true（或者该物品是可损坏的），则ItemStack的NBT标签将被发送到客户端。
      */
     public boolean getShareTag()
     {
@@ -654,7 +654,7 @@ public class Item
     }
 
     /**
-     * True if this Item has a container item (a.k.a. crafting result)
+     * 如果该物品有容器物品（也称为制作结果），则为 true
      */
     @Deprecated // Use ItemStack sensitive version below.
     public boolean hasContainerItem()
@@ -1030,11 +1030,11 @@ public class Item
     }
 
     /**
-     * ItemStack sensitive version of getContainerItem.
-     * Returns a full ItemStack instance of the result.
+     * getContainerItem 的 ItemStack 敏感版本。
+     * 返回结果的完整 ItemStack 实例。
      *
-     * @param itemStack The current ItemStack
-     * @return The resulting ItemStack
+     * @param itemStack 当前的ItemStack
+     * @return 生成的 ItemStack
      */
     public ItemStack getContainerItem(ItemStack itemStack)
     {
@@ -1046,9 +1046,9 @@ public class Item
     }
 
     /**
-     * ItemStack sensitive version of hasContainerItem
-     * @param stack The current item stack
-     * @return True if this item has a 'container'
+     * hasContainerItem 的 ItemStack 敏感版本
+     * @param stack 当前项堆栈
+     * @return 如果该项目有“容器”则为 True
      */
     public boolean hasContainerItem(ItemStack stack)
     {

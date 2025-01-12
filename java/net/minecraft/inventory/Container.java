@@ -15,9 +15,9 @@ import net.minecraft.util.MathHelper;
 
 public abstract class Container
 {
-    /** the list of all items(stacks) for the corresponding slot */
+    /** 对应槽位的所有项目（堆栈）的列表 */
     public List<net.minecraft.item.ItemStack> inventoryItemStacks = new ArrayList();
-    /** the list of all slots in the inventory */
+    /** 库存中所有插槽的列表 */
     public List<net.minecraft.inventory.Slot> inventorySlots = new ArrayList();
     public int windowId;
     @SideOnly(Side.CLIENT)
@@ -25,13 +25,13 @@ public abstract class Container
     private int field_94535_f = -1;
     private int field_94536_g;
     private final Set field_94537_h = new HashSet();
-    /** list of all people that need to be notified when this craftinventory changes */
+    /** 当该工艺库存发生变化时需要通知的所有人员的列表 */
     protected List<net.minecraft.inventory.ICrafting> crafters = new ArrayList();
     private Set playerList = new HashSet();
     private static final String __OBFID = "CL_00001730";
 
     /**
-     * the slot is assumed empty
+     * 假设该槽是空的
      */
     protected Slot addSlotToContainer(Slot p_75146_1_)
     {
@@ -56,7 +56,7 @@ public abstract class Container
     }
 
     /**
-     * returns a list if itemStacks, for each slot.
+     * 如果 itemStacks 为每个槽返回一个列表。
      */
     public List<net.minecraft.item.ItemStack> getInventory()
     {
@@ -532,7 +532,7 @@ public abstract class Container
     }
 
     /**
-     * Callback for when the crafting matrix is changed.
+     * 制作矩阵更改时的回调。
      */
     public void onCraftMatrixChanged(IInventory p_75130_1_)
     {
@@ -745,8 +745,8 @@ public abstract class Container
     }
 
     /**
-     * Returns true if the player can "drag-spilt" items into this slot,. returns true by default. Called to check if
-     * the slot can be added to a list of Slots to split the held ItemStack across.
+     * 如果玩家可以将物品“拖拽”到此插槽中，则返回 true。默认返回 true。打电话来检查是否
+     * 可以将插槽添加到插槽列表中，以将所持有的 ItemStack 分开。
      */
     public boolean canDragIntoSlot(Slot p_94531_1_)
     {

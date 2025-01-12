@@ -9,7 +9,7 @@ import net.minecraft.world.World;
 
 public class ContainerWorkbench extends Container
 {
-    /** The crafting matrix inventory (3x3). */
+    /** 制作矩阵库存 (3x3)。 */
     public InventoryCrafting craftMatrix = new InventoryCrafting(this, 3, 3);
     public IInventory craftResult = new InventoryCraftResult();
     private World worldObj;
@@ -87,65 +87,79 @@ public class ContainerWorkbench extends Container
     }
 
     /**
-     * Called when a player shift-clicks on a slot. You must override this or you will crash when someone does that.
+     * 当玩家按住 Shift 键并单击插槽时调用。你必须覆盖这个，否则当有人这样做时你会崩溃。
      */
-    public ItemStack transferStackInSlot(EntityPlayer player, int index)
+    public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex)
     {
-        ItemStack itemstack = null;
-        Slot slot = (Slot)this.inventorySlots.get(index);
+        // 获取要转移的物品堆
+        ItemStack stackToTransfer = null;
+        Slot slot = (Slot) this.inventorySlots.get(slotIndex);
 
+        // 如果插槽存在且包含物品堆，则开始处理转移逻辑
         if (slot != null && slot.getHasStack())
         {
-            ItemStack itemstack1 = slot.getStack();
-            itemstack = itemstack1.copy();
+            ItemStack originalStack = slot.getStack();
+            stackToTransfer = originalStack.copy();
 
-            if (index == 0)
+            // 根据插槽索引处理物品堆的转移
+            if (slotIndex == 0) // 主输出插槽
             {
-                if (!this.mergeItemStack(itemstack1, 10, 46, true))
+                // 将物品堆从主输出插槽转移到玩家的主工具栏或背包中
+                if (!this.mergeItemStack(originalStack, 10, 46, true))
                 {
                     return null;
                 }
 
-                slot.onSlotChange(itemstack1, itemstack);
+                slot.onSlotChange(originalStack, stackToTransfer);
             }
-            else if (index >= 10 && index < 37)
+            else if (slotIndex >= 10 && slotIndex < 37) // 玩家的主工具栏和背包
             {
-                if (!this.mergeItemStack(itemstack1, 37, 46, false))
+                // 将物品堆从玩家的主工具栏或背包转移到主输出插槽中
+                if (!this.mergeItemStack(originalStack, 37, 46, false))
                 {
                     return null;
                 }
             }
-            else if (index >= 37 && index < 46)
+            else if (slotIndex >= 37 && slotIndex < 46) // 玩家的主工具栏
             {
-                if (!this.mergeItemStack(itemstack1, 10, 37, false))
+                // 将物品堆从玩家的主工具栏转移到玩家的背包或主输出插槽中
+                if (!this.mergeItemStack(originalStack, 10, 37, false))
                 {
                     return null;
                 }
             }
-            else if (!this.mergeItemStack(itemstack1, 10, 46, false))
+            else // 其他插槽
             {
-                return null;
+                // 尝试将物品堆转移到玩家的主工具栏或背包中
+                if (!this.mergeItemStack(originalStack, 10, 46, false))
+                {
+                    return null;
+                }
             }
 
-            if (itemstack1.stackSize == 0)
+            // 如果插槽中的物品堆数量为0，则清空插槽
+            if (originalStack.stackSize == 0)
             {
-                slot.putStack((ItemStack)null);
+                slot.putStack((ItemStack) null);
             }
             else
             {
                 slot.onSlotChanged();
             }
 
-            if (itemstack1.stackSize == itemstack.stackSize)
+            // 如果物品堆数量没有变化，则返回null
+            if (originalStack.stackSize == stackToTransfer.stackSize)
             {
                 return null;
             }
 
-            slot.onPickupFromSlot(player, itemstack1);
+            // 更新玩家拾取物品的逻辑
+            slot.onPickupFromSlot(player, originalStack);
         }
 
-        return itemstack;
+        return stackToTransfer;
     }
+
 
     public boolean func_94530_a(ItemStack p_94530_1_, Slot p_94530_2_)
     {

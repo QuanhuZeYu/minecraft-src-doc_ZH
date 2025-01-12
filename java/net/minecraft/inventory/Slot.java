@@ -10,16 +10,17 @@ import net.minecraft.util.ResourceLocation;
 
 public class Slot
 {
-    /** The index of the slot in the inventory. */
+    /** 该插槽在物品栏中的索引。 */
     private final int slotIndex;
-    /** The inventory we want to extract a slot from. */
+    /** 我们想要从中提取插槽的物品栏。 */
     public final IInventory inventory;
-    /** the id of the slot(also the index in the inventory arraylist) */
+    /** 插槽的ID（也是物品栏数组列表中的索引）。 */
     public int slotNumber;
-    /** display position of the inventory slot on the screen x axis */
+    /** 物品栏插槽在屏幕上的显示位置x轴坐标。 */
     public int xDisplayPosition;
-    /** display position of the inventory slot on the screen y axis */
+    /** 物品栏插槽在屏幕上的显示位置y轴坐标。 */
     public int yDisplayPosition;
+
     private static final String __OBFID = "CL_00001762";
 
     /** Position within background texture file, normally -1 which causes no background to be drawn. */
@@ -38,19 +39,20 @@ public class Slot
     }
 
     /**
-     * if par2 has more items than par1, onCrafting(item,countIncrease) is called
+     * 如果 par2 的项目数多于 par1，则调用 onCrafting(item,countIncrease)
      */
-    public void onSlotChange(ItemStack p_75220_1_, ItemStack p_75220_2_)
-    {
-        if (p_75220_1_ != null && p_75220_2_ != null)
-        {
-            if (p_75220_1_.getItem() == p_75220_2_.getItem())
-            {
-                int i = p_75220_2_.stackSize - p_75220_1_.stackSize;
+    public void onSlotChange(ItemStack oldStack, ItemStack newStack) {
+        // 检查旧堆栈和新堆栈是否都非空
+        if (oldStack != null && newStack != null) {
+            // 如果新旧堆栈中物品相同
+            if (oldStack.getItem() == newStack.getItem()) {
+                // 计算物品数量的增加
+                int itemCountDifference = newStack.stackSize - oldStack.stackSize;
 
-                if (i > 0)
-                {
-                    this.onCrafting(p_75220_1_, i);
+                // 如果数量增加了
+                if (itemCountDifference > 0) {
+                    // 调用onCrafting方法，传入旧堆栈和数量差
+                    this.onCrafting(oldStack, itemCountDifference);
                 }
             }
         }
@@ -63,7 +65,7 @@ public class Slot
     protected void onCrafting(ItemStack p_75210_1_, int p_75210_2_) {}
 
     /**
-     * the itemStack passed in is the output - ie, iron ingots, and pickaxes, not ore and wood.
+     * 传入的 itemStack 是输出 - 即铁锭和镐，而不是矿石和木材。
      */
     protected void onCrafting(ItemStack p_75208_1_) {}
 

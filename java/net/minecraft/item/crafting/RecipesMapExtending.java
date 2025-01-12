@@ -52,31 +52,46 @@ public class RecipesMapExtending extends ShapedRecipes
     }
 
     /**
-     * Returns an Item that is the result of this recipe
+     * 返回一个项目，该项目是该配方的结果。
+     * 具体来说，这个方法从给定的 crafting inventory 中找到第一个 filled map，然后对其进行复制，并设置其大小为1。
+     * 最后，它会在 map 的 NBTTagCompound 中添加一个键值对，表示该地图正在进行缩放。
      */
-    public ItemStack getCraftingResult(InventoryCrafting p_77572_1_)
+    public ItemStack getCraftingResult(InventoryCrafting craftingInventory)
     {
-        ItemStack itemstack = null;
+        // 初始化 itemStack 为 null，用于存储找到的 filled map
+        ItemStack resultingMap = null;
 
-        for (int i = 0; i < p_77572_1_.getSizeInventory() && itemstack == null; ++i)
+        // 遍历 crafting inventory 中的每一个槽位
+        for (int slotIndex = 0; slotIndex < craftingInventory.getSizeInventory() && resultingMap == null; ++slotIndex)
         {
-            ItemStack itemstack1 = p_77572_1_.getStackInSlot(i);
+            // 获取当前槽位中的物品
+            ItemStack currentStack = craftingInventory.getStackInSlot(slotIndex);
 
-            if (itemstack1 != null && itemstack1.getItem() == Items.filled_map)
+            // 检查当前槽位中的物品是否为 filled map
+            if (currentStack != null && currentStack.getItem() == Items.filled_map)
             {
-                itemstack = itemstack1;
+                // 如果是 filled map，则将其赋值给 resultingMap
+                resultingMap = currentStack;
             }
         }
 
-        itemstack = itemstack.copy();
-        itemstack.stackSize = 1;
+        // 复制找到的 filled map
+        resultingMap = resultingMap.copy();
 
-        if (itemstack.getTagCompound() == null)
+        // 设置复制的地图的数量为1
+        resultingMap.stackSize = 1;
+
+        // 如果地图没有 NBTTagCompound，则创建一个新的
+        if (resultingMap.getTagCompound() == null)
         {
-            itemstack.setTagCompound(new NBTTagCompound());
+            resultingMap.setTagCompound(new NBTTagCompound());
         }
 
-        itemstack.getTagCompound().setBoolean("map_is_scaling", true);
-        return itemstack;
+        // 在 NBTTagCompound 中设置一个键值对，表示该地图正在进行缩放
+        resultingMap.getTagCompound().setBoolean("map_is_scaling", true);
+
+        // 返回处理后的地图
+        return resultingMap;
     }
+
 }
