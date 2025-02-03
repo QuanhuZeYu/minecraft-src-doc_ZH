@@ -179,7 +179,7 @@ public class GuiButton extends Gui {
     /**
      * 播放按钮点击音效
      */
-    public void func_146113_a(SoundHandler soundHandlerIn) {
+    public void playClickSound(SoundHandler soundHandlerIn) {
         // 播放按钮点击声
         soundHandlerIn.playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
     }

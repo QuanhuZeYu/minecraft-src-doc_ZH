@@ -287,7 +287,7 @@ public class GuiScreen extends Gui
                     if (MinecraftForge.EVENT_BUS.post(event))
                         break;
                     this.selectedButton = event.button;
-                    event.button.func_146113_a(this.mc.getSoundHandler());
+                    event.button.playClickSound(this.mc.getSoundHandler());
                     this.actionPerformed(event.button);
                     if (this.equals(this.mc.currentScreen))
                         MinecraftForge.EVENT_BUS.post(new ActionPerformedEvent.Post(this, event.button, this.buttonList));

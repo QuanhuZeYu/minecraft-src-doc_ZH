@@ -516,7 +516,7 @@ public class GuiEditArrayEntries extends GuiListExtended
         {
             if (this.btnValue.mousePressed(owningEntryList.mc, x, y))
             {
-                btnValue.func_146113_a(owningEntryList.mc.getSoundHandler());
+                btnValue.playClickSound(owningEntryList.mc.getSoundHandler());
                 value = !value;
                 owningEntryList.recalculateState();
                 return true;
@@ -625,14 +625,14 @@ public class GuiEditArrayEntries extends GuiListExtended
         {
             if (this.btnAddNewEntryAbove.mousePressed(owningEntryList.mc, x, y))
             {
-                btnAddNewEntryAbove.func_146113_a(owningEntryList.mc.getSoundHandler());
+                btnAddNewEntryAbove.playClickSound(owningEntryList.mc.getSoundHandler());
                 owningEntryList.addNewEntry(index);
                 owningEntryList.recalculateState();
                 return true;
             }
             else if (this.btnRemoveEntry.mousePressed(owningEntryList.mc, x, y))
             {
-                btnRemoveEntry.func_146113_a(owningEntryList.mc.getSoundHandler());
+                btnRemoveEntry.playClickSound(owningEntryList.mc.getSoundHandler());
                 owningEntryList.removeEntry(index);
                 owningEntryList.recalculateState();
                 return true;

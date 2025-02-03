@@ -172,7 +172,7 @@ public class GuiScreenOptionsSounds extends GuiScreen
             }
         }
 
-        public void func_146113_a(SoundHandler soundHandlerIn) {}
+        public void playClickSound(SoundHandler soundHandlerIn) {}
 
         /**
          * Fired when the mouse button is released. Equivalent of MouseListener.mouseReleased(MouseEvent e).

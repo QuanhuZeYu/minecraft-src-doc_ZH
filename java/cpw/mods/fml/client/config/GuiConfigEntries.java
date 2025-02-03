@@ -954,7 +954,7 @@ public class GuiConfigEntries extends GuiListExtended
         {
             if (this.btnValue.mousePressed(this.mc, x, y))
             {
-                btnValue.func_146113_a(mc.getSoundHandler());
+                btnValue.playClickSound(mc.getSoundHandler());
                 valueButtonPressed(index);
                 updateValueButtonText();
                 return true;
@@ -1391,7 +1391,7 @@ public class GuiConfigEntries extends GuiListExtended
         {
             if (this.btnSelectCategory.mousePressed(this.mc, x, y))
             {
-                btnSelectCategory.func_146113_a(mc.getSoundHandler());
+                btnSelectCategory.playClickSound(mc.getSoundHandler());
                 Minecraft.getMinecraft().displayGuiScreen(childScreen);
                 return true;
             }
@@ -1630,13 +1630,13 @@ public class GuiConfigEntries extends GuiListExtended
         {
             if (this.btnDefault.mousePressed(this.mc, x, y))
             {
-                btnDefault.func_146113_a(mc.getSoundHandler());
+                btnDefault.playClickSound(mc.getSoundHandler());
                 setToDefault();
                 return true;
             }
             else if (this.btnUndoChanges.mousePressed(this.mc, x, y))
             {
-                btnUndoChanges.func_146113_a(mc.getSoundHandler());
+                btnUndoChanges.playClickSound(mc.getSoundHandler());
                 undoChanges();
                 return true;
             }
