@@ -79,7 +79,7 @@ public class GuiInventory extends InventoryEffectRenderer
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
     {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.mc.getTextureManager().bindTexture(field_147001_a);
+        this.mc.getTextureManager().bindTexture(inventoryBackgroundTexture);
         int k = this.guiLeft;
         int l = this.guiTop;
         this.drawTexturedModalRect(k, l, 0, 0, this.xSize, this.ySize);

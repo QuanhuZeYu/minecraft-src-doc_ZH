@@ -6,7 +6,7 @@ import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import java.util.List;
-import net.minecraft.client.multiplayer.GuiConnecting;
+
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.client.network.LanServerDetector;
@@ -422,7 +422,7 @@ public class GuiMultiplayer extends GuiScreen implements GuiYesNoCallback
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
     {
         super.mouseClicked(mouseX, mouseY, mouseButton);
-        this.field_146803_h.func_148179_a(mouseX, mouseY, mouseButton);
+        this.field_146803_h.handleMouseClick(mouseX, mouseY, mouseButton);
     }
 
     /**
@@ -432,7 +432,7 @@ public class GuiMultiplayer extends GuiScreen implements GuiYesNoCallback
     protected void mouseMovedOrUp(int mouseX, int mouseY, int state)
     {
         super.mouseMovedOrUp(mouseX, mouseY, state);
-        this.field_146803_h.func_148181_b(mouseX, mouseY, state);
+        this.field_146803_h.handleMouseRelease(mouseX, mouseY, state);
     }
 
     public ServerList func_146795_p()

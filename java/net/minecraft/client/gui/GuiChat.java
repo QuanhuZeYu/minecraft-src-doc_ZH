@@ -39,35 +39,34 @@ import tv.twitch.chat.ChatUserInfo;
 @SideOnly(Side.CLIENT)
 public class GuiChat extends GuiScreen implements GuiYesNoCallback
 {
-    private static final Set field_152175_f = Sets.newHashSet(new String[] {"http", "https"});
+    private static final Set<String> ALLOWED_PROTOCOLS = Sets.newHashSet(new String[] {"http", "https"});
     private static final Logger logger = LogManager.getLogger();
-    private String field_146410_g = "";
+    private String lastInputText = "";
     /**
-     * keeps position of which chat message you will select when you press up, (does not increase for duplicated
-     * messages sent immediately after each other)
+     * 记录当前选择的聊天消息历史位置，按下上键时会选择上一条消息（不会因为连续发送相同消息而增加）
      */
     private int sentHistoryCursor = -1;
-    private boolean field_146417_i;
-    private boolean field_146414_r;
-    private int field_146413_s;
-    private List field_146412_t = new ArrayList();
-    /** used to pass around the URI to various dialogues and to the host os */
+    private boolean isAutoCompleting;
+    private boolean isTabCompleteRequested;
+    private int autoCompleteIndex;
+    private List<String> autoCompleteOptions = new ArrayList();
+    /** 用于传递URI到各种对话框和主机操作系统 */
     private URI clickedURI;
-    /** Chat entry field */
+    /** 聊天输入框 */
     protected GuiTextField inputField;
-    /** is the text that appears when you press the chat key and the input box appears pre-filled */
+    /** 按下聊天键时输入框中显示的默认文本 */
     private String defaultInputFieldText = "";
     private static final String __OBFID = "CL_00000682";
 
     public GuiChat() {}
 
-    public GuiChat(String p_i1024_1_)
+    public GuiChat(String defaultText)
     {
-        this.defaultInputFieldText = p_i1024_1_;
+        this.defaultInputFieldText = defaultText;
     }
 
     /**
-     * Adds the buttons (and other controls) to the screen in question.
+     * 初始化GUI，添加按钮和其他控件。
      */
     public void initGui()
     {
@@ -82,7 +81,7 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
     }
 
     /**
-     * Called when the screen is unloaded. Used to disable keyboard repeat events
+     * 当屏幕卸载时调用，用于禁用键盘重复事件。
      */
     public void onGuiClosed()
     {
@@ -91,7 +90,7 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
     }
 
     /**
-     * Called from the main game loop to update the screen.
+     * 从主游戏循环中调用以更新屏幕。
      */
     public void updateScreen()
     {
@@ -99,40 +98,40 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
     }
 
     /**
-     * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * 当按键被键入时调用，相当于KeyListener.keyTyped(KeyEvent e)。
      */
     protected void keyTyped(char typedChar, int keyCode)
     {
-        this.field_146414_r = false;
+        this.isTabCompleteRequested = false;
 
-        if (keyCode == 15)
+        if (keyCode == 15) // Tab键
         {
-            this.func_146404_p_();
+            this.performAutoComplete();
         }
         else
         {
-            this.field_146417_i = false;
+            this.isAutoCompleting = false;
         }
 
-        if (keyCode == 1)
+        if (keyCode == 1) // Esc键
         {
             this.mc.displayGuiScreen((GuiScreen)null);
         }
-        else if (keyCode != 28 && keyCode != 156)
+        else if (keyCode != 28 && keyCode != 156) // Enter键
         {
-            if (keyCode == 200)
+            if (keyCode == 200) // 上键
             {
                 this.getSentHistory(-1);
             }
-            else if (keyCode == 208)
+            else if (keyCode == 208) // 下键
             {
                 this.getSentHistory(1);
             }
-            else if (keyCode == 201)
+            else if (keyCode == 201) // Page Up键
             {
                 this.mc.ingameGUI.getChatGUI().scroll(this.mc.ingameGUI.getChatGUI().func_146232_i() - 1);
             }
-            else if (keyCode == 209)
+            else if (keyCode == 209) // Page Down键
             {
                 this.mc.ingameGUI.getChatGUI().scroll(-this.mc.ingameGUI.getChatGUI().func_146232_i() + 1);
             }
@@ -143,122 +142,126 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
         }
         else
         {
-            String s = this.inputField.getText().trim();
+            String inputText = this.inputField.getText().trim();
 
-            if (s.length() > 0)
+            if (inputText.length() > 0)
             {
-                this.func_146403_a(s);
+                this.sendChatMessage(inputText);
             }
 
             this.mc.displayGuiScreen((GuiScreen)null);
         }
     }
 
-    public void func_146403_a(String p_146403_1_)
+    /**
+     * 发送聊天消息。
+     * @param message 要发送的消息
+     */
+    public void sendChatMessage(String message)
     {
-        this.mc.ingameGUI.getChatGUI().addToSentMessages(p_146403_1_);
-        if (net.minecraftforge.client.ClientCommandHandler.instance.executeCommand(mc.thePlayer, p_146403_1_) != 0) return;
-        this.mc.thePlayer.sendChatMessage(p_146403_1_);
+        this.mc.ingameGUI.getChatGUI().addToSentMessages(message);
+        if (net.minecraftforge.client.ClientCommandHandler.instance.executeCommand(mc.thePlayer, message) != 0) return;
+        this.mc.thePlayer.sendChatMessage(message);
     }
 
     /**
-     * Handles mouse input.
+     * 处理鼠标输入。
      */
     public void handleMouseInput()
     {
         super.handleMouseInput();
-        int i = Mouse.getEventDWheel();
+        int scrollDelta = Mouse.getEventDWheel();
 
-        if (i != 0)
+        if (scrollDelta != 0)
         {
-            if (i > 1)
+            if (scrollDelta > 1)
             {
-                i = 1;
+                scrollDelta = 1;
             }
 
-            if (i < -1)
+            if (scrollDelta < -1)
             {
-                i = -1;
+                scrollDelta = -1;
             }
 
             if (!isShiftKeyDown())
             {
-                i *= 7;
+                scrollDelta *= 7;
             }
 
-            this.mc.ingameGUI.getChatGUI().scroll(i);
+            this.mc.ingameGUI.getChatGUI().scroll(scrollDelta);
         }
     }
 
     /**
-     * Called when the mouse is clicked.
+     * 当鼠标点击时调用。
      */
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
     {
         if (mouseButton == 0 && this.mc.gameSettings.chatLinks)
         {
-            IChatComponent ichatcomponent = this.mc.ingameGUI.getChatGUI().func_146236_a(Mouse.getX(), Mouse.getY());
+            IChatComponent chatComponent = this.mc.ingameGUI.getChatGUI().func_146236_a(Mouse.getX(), Mouse.getY());
 
-            if (ichatcomponent != null)
+            if (chatComponent != null)
             {
-                ClickEvent clickevent = ichatcomponent.getChatStyle().getChatClickEvent();
+                ClickEvent clickEvent = chatComponent.getChatStyle().getChatClickEvent();
 
-                if (clickevent != null)
+                if (clickEvent != null)
                 {
                     if (isShiftKeyDown())
                     {
-                        this.inputField.writeText(ichatcomponent.getUnformattedTextForChat());
+                        this.inputField.writeText(chatComponent.getUnformattedTextForChat());
                     }
                     else
                     {
                         URI uri;
 
-                        if (clickevent.getAction() == ClickEvent.Action.OPEN_URL)
+                        if (clickEvent.getAction() == ClickEvent.Action.OPEN_URL)
                         {
                             try
                             {
-                                uri = new URI(clickevent.getValue());
+                                uri = new URI(clickEvent.getValue());
 
-                                if (!field_152175_f.contains(uri.getScheme().toLowerCase()))
+                                if (!ALLOWED_PROTOCOLS.contains(uri.getScheme().toLowerCase()))
                                 {
-                                    throw new URISyntaxException(clickevent.getValue(), "Unsupported protocol: " + uri.getScheme().toLowerCase());
+                                    throw new URISyntaxException(clickEvent.getValue(), "Unsupported protocol: " + uri.getScheme().toLowerCase());
                                 }
 
                                 if (this.mc.gameSettings.chatLinksPrompt)
                                 {
                                     this.clickedURI = uri;
-                                    this.mc.displayGuiScreen(new GuiConfirmOpenLink(this, clickevent.getValue(), 0, false));
+                                    this.mc.displayGuiScreen(new GuiConfirmOpenLink(this, clickEvent.getValue(), 0, false));
                                 }
                                 else
                                 {
-                                    this.func_146407_a(uri);
+                                    this.openURI(uri);
                                 }
                             }
                             catch (URISyntaxException urisyntaxexception)
                             {
-                                logger.error("Can\'t open url for " + clickevent, urisyntaxexception);
+                                logger.error("Can\'t open url for " + clickEvent, urisyntaxexception);
                             }
                         }
-                        else if (clickevent.getAction() == ClickEvent.Action.OPEN_FILE)
+                        else if (clickEvent.getAction() == ClickEvent.Action.OPEN_FILE)
                         {
-                            uri = (new File(clickevent.getValue())).toURI();
-                            this.func_146407_a(uri);
+                            uri = (new File(clickEvent.getValue())).toURI();
+                            this.openURI(uri);
                         }
-                        else if (clickevent.getAction() == ClickEvent.Action.SUGGEST_COMMAND)
+                        else if (clickEvent.getAction() == ClickEvent.Action.SUGGEST_COMMAND)
                         {
-                            this.inputField.setText(clickevent.getValue());
+                            this.inputField.setText(clickEvent.getValue());
                         }
-                        else if (clickevent.getAction() == ClickEvent.Action.RUN_COMMAND)
+                        else if (clickEvent.getAction() == ClickEvent.Action.RUN_COMMAND)
                         {
-                            this.func_146403_a(clickevent.getValue());
+                            this.sendChatMessage(clickEvent.getValue());
                         }
-                        else if (clickevent.getAction() == ClickEvent.Action.TWITCH_USER_INFO)
+                        else if (clickEvent.getAction() == ClickEvent.Action.TWITCH_USER_INFO)
                         {
-                            ChatUserInfo chatuserinfo = this.mc.func_152346_Z().func_152926_a(clickevent.getValue());
+                            ChatUserInfo chatUserInfo = this.mc.func_152346_Z().func_152926_a(clickEvent.getValue());
 
-                            if (chatuserinfo != null)
+                            if (chatUserInfo != null)
                             {
-                                this.mc.displayGuiScreen(new GuiTwitchUserMode(this.mc.func_152346_Z(), chatuserinfo));
+                                this.mc.displayGuiScreen(new GuiTwitchUserMode(this.mc.func_152346_Z(), chatUserInfo));
                             }
                             else
                             {
@@ -267,7 +270,7 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
                         }
                         else
                         {
-                            logger.error("Don\'t know how to handle " + clickevent);
+                            logger.error("Don\'t know how to handle " + clickEvent);
                         }
                     }
 
@@ -280,13 +283,16 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
+    /**
+     * 当确认对话框点击时调用。
+     */
     public void confirmClicked(boolean result, int id)
     {
         if (id == 0)
         {
             if (result)
             {
-                this.func_146407_a(this.clickedURI);
+                this.openURI(this.clickedURI);
             }
 
             this.clickedURI = null;
@@ -294,144 +300,207 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
         }
     }
 
-    private void func_146407_a(URI p_146407_1_)
-    {
-        try
-        {
-            Class oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null, new Object[0]);
-            oclass.getMethod("browse", new Class[] {URI.class}).invoke(object, new Object[] {p_146407_1_});
-        }
-        catch (Throwable throwable)
-        {
-            logger.error("Couldn\'t open link", throwable);
+    /**
+     * 尝试使用系统默认浏览器打开指定URI（如网页链接、文件路径等）
+     * 该方法通过反射调用Java AWT Desktop类的方法以实现跨环境兼容
+     *
+     * @param uri 需要打开的统一资源标识符对象
+     */
+    private void openURI(URI uri) {
+        try {
+            // 通过反射获取Desktop类（避免编译时直接依赖）
+            Class<?> desktopClass = Class.forName("java.awt.Desktop");
+
+            // 获取Desktop类的静态方法getDesktop（无参数）
+            java.lang.reflect.Method getDesktopMethod = desktopClass.getMethod("getDesktop", new Class[0]);
+
+            // 调用getDesktop静态方法获取Desktop实例（单例模式）
+            Object desktopInstance = getDesktopMethod.invoke(null, new Object[0]);
+
+            // 获取Desktop的browse方法，参数类型为URI.class
+            java.lang.reflect.Method browseMethod = desktopClass.getMethod("browse", new Class[] { URI.class });
+
+            // 调用browse方法，传入Desktop实例和URI参数
+            browseMethod.invoke(desktopInstance, new Object[] { uri });
+
+        /* 等效的非反射调用代码：
+           Desktop.getDesktop().browse(uri);
+           使用反射是为了：
+           1. 避免在无图形界面环境（如服务器）中直接加载AWT类导致异常
+           2. 增强对旧版Java的兼容性（编译时不依赖特定类）*/
+
+        } catch (Throwable throwable) {
+            // 捕获所有异常和错误（包括链接打开失败、无桌面环境、安全权限问题等）
+            logger.error("Couldn't open link", throwable);
+
+        /* 错误日志示例：
+           - "java.awt.HeadlessException"：无显示设备、键盘或鼠标的环境
+           - "java.lang.UnsupportedOperationException"：平台不支持browse操作
+           - "java.lang.NoSuchMethodError"：旧版JDK不存在Desktop类（JDK1.6+）
+           - "java.security.AccessControlException"：无权限操作 */
         }
     }
 
-    public void func_146404_p_()
-    {
-        String s1;
+    /**
+     * 执行自动补全逻辑，根据输入框内容提供建议并更新界面
+     * 包含两种模式：
+     * 1. 初次触发：收集候选词并展示第一个补全项
+     * 2. 连续触发：循环切换备选补全项
+     */
+    public void performAutoComplete() {
+        String autoCompleteText; // 存储当前补全文本的临时变量
 
-        if (this.field_146417_i)
-        {
-            this.inputField.deleteFromCursor(this.inputField.func_146197_a(-1, this.inputField.getCursorPosition(), false) - this.inputField.getCursorPosition());
+        // 模式判断：是否处于自动补全状态
+        if (this.isAutoCompleting) {
+        /* 连续触发模式：
+           删除之前补全的内容（通过计算光标位移）
+           func_146197_a(-1, cursorPos, false) 推测为获取单词起始位置的方法
+           - 参数1：-1 表示向左查找单词边界
+           - 参数2：当前光标位置
+           - 参数3：是否考虑颜色代码等特殊字符 */
+            int wordStart = this.inputField.func_146197_a(-1, this.inputField.getCursorPosition(), false);
+            this.inputField.deleteFromCursor(wordStart - this.inputField.getCursorPosition());
 
-            if (this.field_146413_s >= this.field_146412_t.size())
-            {
-                this.field_146413_s = 0;
+            // 循环索引（当超过选项数量时重置为0）
+            if (this.autoCompleteIndex >= this.autoCompleteOptions.size()) {
+                this.autoCompleteIndex = 0;
             }
-        }
-        else
-        {
-            int i = this.inputField.func_146197_a(-1, this.inputField.getCursorPosition(), false);
-            this.field_146412_t.clear();
-            this.field_146413_s = 0;
-            String s = this.inputField.getText().substring(i).toLowerCase();
-            s1 = this.inputField.getText().substring(0, this.inputField.getCursorPosition());
-            this.func_146405_a(s1, s);
+        } else {
+        /* 初次触发模式：
+           准备自动补全环境 */
+            int cursorPos = this.inputField.getCursorPosition();
+            int wordStart = this.inputField.func_146197_a(-1, cursorPos, false); // 获取当前单词起始位置
 
-            if (this.field_146412_t.isEmpty())
-            {
+            // 重置自动补全状态
+            this.autoCompleteOptions.clear();
+            this.autoCompleteIndex = 0;
+
+            // 提取部分文本（光标前的完整内容 + 光标后的部分词）
+            String fullTextBeforeCursor = this.inputField.getText().substring(0, cursorPos);
+            String partialWord = this.inputField.getText().substring(wordStart, cursorPos).toLowerCase();
+
+            // 请求自动补全建议（具体实现未展示）
+            this.requestAutoComplete(fullTextBeforeCursor, partialWord);
+
+            // 无建议时直接返回
+            if (this.autoCompleteOptions.isEmpty()) {
                 return;
             }
 
-            this.field_146417_i = true;
-            this.inputField.deleteFromCursor(i - this.inputField.getCursorPosition());
+            // 进入自动补全状态
+            this.isAutoCompleting = true;
+            // 删除当前正在输入的部分单词（准备替换为补全项）
+            this.inputField.deleteFromCursor(wordStart - cursorPos);
         }
 
-        if (this.field_146412_t.size() > 1)
-        {
-            StringBuilder stringbuilder = new StringBuilder();
+        // 当存在多个候选项时显示提示信息
+        if (this.autoCompleteOptions.size() > 1) {
+            StringBuilder suggestions = new StringBuilder();
 
-            for (Iterator iterator = this.field_146412_t.iterator(); iterator.hasNext(); stringbuilder.append(s1))
-            {
-                s1 = (String)iterator.next();
-
-                if (stringbuilder.length() > 0)
-                {
-                    stringbuilder.append(", ");
+            // 构建候选列表字符串（存在问题：见下方说明）
+            Iterator<String> it = this.autoCompleteOptions.iterator();
+            while (it.hasNext()) {
+                String option = it.next();
+                if (suggestions.length() > 0) {
+                    suggestions.append(", ");
                 }
+                suggestions.append(option); // 原始代码此处有逻辑错误（见分析）
             }
 
-            this.mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new ChatComponentText(stringbuilder.toString()), 1);
+            // 在聊天栏显示提示（ID=1 的消息会被后续提示覆盖）
+            this.mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(
+                    new ChatComponentText(suggestions.toString()),
+                    1
+            );
         }
 
-        this.inputField.writeText(EnumChatFormatting.getTextWithoutFormattingCodes((String)this.field_146412_t.get(this.field_146413_s++)));
+        /* 插入补全内容：
+        1. 获取当前索引对应的候选项
+        2. 移除颜色格式代码（防止颜色代码干扰输入）
+        3. 自增索引为下次切换准备 */
+        String selectedOption = this.autoCompleteOptions.get(this.autoCompleteIndex);
+        this.inputField.writeText(EnumChatFormatting.getTextWithoutFormattingCodes(selectedOption));
+        this.autoCompleteIndex++;
     }
 
-    private void func_146405_a(String p_146405_1_, String p_146405_2_)
+    /**
+     * 请求自动补全。
+     * @param prefix 前缀
+     * @param partial 部分文本
+     */
+    private void requestAutoComplete(String prefix, String partial)
     {
-        if (p_146405_1_.length() >= 1)
+        if (prefix.length() >= 1)
         {
-            net.minecraftforge.client.ClientCommandHandler.instance.autoComplete(p_146405_1_, p_146405_2_);
-            this.mc.thePlayer.sendQueue.addToSendQueue(new C14PacketTabComplete(p_146405_1_));
-            this.field_146414_r = true;
+            net.minecraftforge.client.ClientCommandHandler.instance.autoComplete(prefix, partial);
+            this.mc.thePlayer.sendQueue.addToSendQueue(new C14PacketTabComplete(prefix));
+            this.isTabCompleteRequested = true;
         }
     }
 
     /**
-     * input is relative and is applied directly to the sentHistoryCursor so -1 is the previous message, 1 is the next
-     * message from the current cursor position
+     * 获取聊天消息历史记录。
+     * @param direction 方向，-1为上一个消息，1为下一个消息
      */
-    public void getSentHistory(int p_146402_1_)
+    public void getSentHistory(int direction)
     {
-        int j = this.sentHistoryCursor + p_146402_1_;
-        int k = this.mc.ingameGUI.getChatGUI().getSentMessages().size();
+        int newCursorPosition = this.sentHistoryCursor + direction;
+        int sentMessagesSize = this.mc.ingameGUI.getChatGUI().getSentMessages().size();
 
-        if (j < 0)
+        if (newCursorPosition < 0)
         {
-            j = 0;
+            newCursorPosition = 0;
         }
 
-        if (j > k)
+        if (newCursorPosition > sentMessagesSize)
         {
-            j = k;
+            newCursorPosition = sentMessagesSize;
         }
 
-        if (j != this.sentHistoryCursor)
+        if (newCursorPosition != this.sentHistoryCursor)
         {
-            if (j == k)
+            if (newCursorPosition == sentMessagesSize)
             {
-                this.sentHistoryCursor = k;
-                this.inputField.setText(this.field_146410_g);
+                this.sentHistoryCursor = sentMessagesSize;
+                this.inputField.setText(this.lastInputText);
             }
             else
             {
-                if (this.sentHistoryCursor == k)
+                if (this.sentHistoryCursor == sentMessagesSize)
                 {
-                    this.field_146410_g = this.inputField.getText();
+                    this.lastInputText = this.inputField.getText();
                 }
 
-                this.inputField.setText((String)this.mc.ingameGUI.getChatGUI().getSentMessages().get(j));
-                this.sentHistoryCursor = j;
+                this.inputField.setText((String)this.mc.ingameGUI.getChatGUI().getSentMessages().get(newCursorPosition));
+                this.sentHistoryCursor = newCursorPosition;
             }
         }
     }
 
     /**
-     * Draws the screen and all the components in it.
+     * 绘制屏幕及其所有组件。
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         drawRect(2, this.height - 14, this.width - 2, this.height - 2, Integer.MIN_VALUE);
         this.inputField.drawTextBox();
-        IChatComponent ichatcomponent = this.mc.ingameGUI.getChatGUI().func_146236_a(Mouse.getX(), Mouse.getY());
+        IChatComponent chatComponent = this.mc.ingameGUI.getChatGUI().func_146236_a(Mouse.getX(), Mouse.getY());
 
-        if (ichatcomponent != null && ichatcomponent.getChatStyle().getChatHoverEvent() != null)
+        if (chatComponent != null && chatComponent.getChatStyle().getChatHoverEvent() != null)
         {
-            HoverEvent hoverevent = ichatcomponent.getChatStyle().getChatHoverEvent();
+            HoverEvent hoverEvent = chatComponent.getChatStyle().getChatHoverEvent();
 
-            if (hoverevent.getAction() == HoverEvent.Action.SHOW_ITEM)
+            if (hoverEvent.getAction() == HoverEvent.Action.SHOW_ITEM)
             {
-                ItemStack itemstack = null;
+                ItemStack itemStack = null;
 
                 try
                 {
-                    NBTBase nbtbase = JsonToNBT.func_150315_a(hoverevent.getValue().getUnformattedText());
+                    NBTBase nbtBase = JsonToNBT.func_150315_a(hoverEvent.getValue().getUnformattedText());
 
-                    if (nbtbase != null && nbtbase instanceof NBTTagCompound)
+                    if (nbtBase != null && nbtBase instanceof NBTTagCompound)
                     {
-                        itemstack = ItemStack.loadItemStackFromNBT((NBTTagCompound)nbtbase);
+                        itemStack = ItemStack.loadItemStackFromNBT((NBTTagCompound)nbtBase);
                     }
                 }
                 catch (NBTException nbtexception)
@@ -439,37 +508,37 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
                     ;
                 }
 
-                if (itemstack != null)
+                if (itemStack != null)
                 {
-                    this.renderToolTip(itemstack, mouseX, mouseY);
+                    this.renderToolTip(itemStack, mouseX, mouseY);
                 }
                 else
                 {
                     this.drawCreativeTabHoveringText(EnumChatFormatting.RED + "Invalid Item!", mouseX, mouseY);
                 }
             }
-            else if (hoverevent.getAction() == HoverEvent.Action.SHOW_TEXT)
+            else if (hoverEvent.getAction() == HoverEvent.Action.SHOW_TEXT)
             {
-                this.func_146283_a(Splitter.on("\n").splitToList(hoverevent.getValue().getFormattedText()), mouseX, mouseY);
+                this.func_146283_a(Splitter.on("\n").splitToList(hoverEvent.getValue().getFormattedText()), mouseX, mouseY);
             }
-            else if (hoverevent.getAction() == HoverEvent.Action.SHOW_ACHIEVEMENT)
+            else if (hoverEvent.getAction() == HoverEvent.Action.SHOW_ACHIEVEMENT)
             {
-                StatBase statbase = StatList.func_151177_a(hoverevent.getValue().getUnformattedText());
+                StatBase statBase = StatList.func_151177_a(hoverEvent.getValue().getUnformattedText());
 
-                if (statbase != null)
+                if (statBase != null)
                 {
-                    IChatComponent ichatcomponent1 = statbase.func_150951_e();
-                    ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("stats.tooltip.type." + (statbase.isAchievement() ? "achievement" : "statistic"), new Object[0]);
-                    chatcomponenttranslation.getChatStyle().setItalic(Boolean.valueOf(true));
-                    String s = statbase instanceof Achievement ? ((Achievement)statbase).getDescription() : null;
-                    ArrayList arraylist = Lists.newArrayList(new String[] {ichatcomponent1.getFormattedText(), chatcomponenttranslation.getFormattedText()});
+                    IChatComponent statComponent = statBase.func_150951_e();
+                    ChatComponentTranslation statTranslation = new ChatComponentTranslation("stats.tooltip.type." + (statBase.isAchievement() ? "achievement" : "statistic"), new Object[0]);
+                    statTranslation.getChatStyle().setItalic(Boolean.valueOf(true));
+                    String description = statBase instanceof Achievement ? ((Achievement)statBase).getDescription() : null;
+                    ArrayList<String> tooltipLines = Lists.newArrayList(new String[] {statComponent.getFormattedText(), statTranslation.getFormattedText()});
 
-                    if (s != null)
+                    if (description != null)
                     {
-                        arraylist.addAll(this.fontRendererObj.listFormattedStringToWidth(s, 150));
+                        tooltipLines.addAll(this.fontRendererObj.listFormattedStringToWidth(description, 150));
                     }
 
-                    this.func_146283_a(arraylist, mouseX, mouseY);
+                    this.func_146283_a(tooltipLines, mouseX, mouseY);
                 }
                 else
                 {
@@ -483,50 +552,54 @@ public class GuiChat extends GuiScreen implements GuiYesNoCallback
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
-    public void func_146406_a(String[] p_146406_1_)
+    /**
+     * 处理自动补全结果。
+     * @param autoCompleteResults 自动补全结果
+     */
+    public void handleAutoCompleteResults(String[] autoCompleteResults)
     {
-        if (this.field_146414_r)
+        if (this.isTabCompleteRequested)
         {
-            this.field_146417_i = false;
-            this.field_146412_t.clear();
-            String[] astring1 = p_146406_1_;
-            int i = p_146406_1_.length;
+            this.isAutoCompleting = false;
+            this.autoCompleteOptions.clear();
+            String[] results = autoCompleteResults;
+            int resultCount = autoCompleteResults.length;
 
             String[] complete = net.minecraftforge.client.ClientCommandHandler.instance.latestAutoComplete;
             if (complete != null)
             {
-                astring1 = com.google.common.collect.ObjectArrays.concat(complete, astring1, String.class);
-                i = astring1.length;
+                results = com.google.common.collect.ObjectArrays.concat(complete, results, String.class);
+                resultCount = results.length;
             }
 
-            for (int j = 0; j < i; ++j)
+            for (int i = 0; i < resultCount; ++i)
             {
-                String s = astring1[j];
+                String result = results[i];
 
-                if (s.length() > 0)
+                if (result.length() > 0)
                 {
-                    this.field_146412_t.add(s);
+                    this.autoCompleteOptions.add(result);
                 }
             }
 
-            String s1 = this.inputField.getText().substring(this.inputField.func_146197_a(-1, this.inputField.getCursorPosition(), false));
-            String s2 = StringUtils.getCommonPrefix(p_146406_1_);
+            String partialText = this.inputField.getText().substring(this.inputField.func_146197_a(-1, this.inputField.getCursorPosition(), false));
+            String commonPrefix = StringUtils.getCommonPrefix(autoCompleteResults);
 
-            if (s2.length() > 0 && !s1.equalsIgnoreCase(s2))
+            if (commonPrefix.length() > 0 && !partialText.equalsIgnoreCase(commonPrefix))
             {
                 this.inputField.deleteFromCursor(this.inputField.func_146197_a(-1, this.inputField.getCursorPosition(), false) - this.inputField.getCursorPosition());
-                this.inputField.writeText(s2);
+                this.inputField.writeText(commonPrefix);
             }
-            else if (this.field_146412_t.size() > 0)
+            else if (this.autoCompleteOptions.size() > 0)
             {
-                this.field_146417_i = true;
-                this.func_146404_p_();
+                this.isAutoCompleting = true;
+                this.performAutoComplete();
             }
         }
     }
 
     /**
-     * Returns true if this GUI should pause the game when it is displayed in single-player
+     * 返回此GUI是否应在单机模式下暂停游戏。
      */
     public boolean doesGuiPauseGame()
     {

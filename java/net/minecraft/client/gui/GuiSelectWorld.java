@@ -150,7 +150,7 @@ public class GuiSelectWorld extends GuiScreen implements GuiYesNoCallback
                 ISaveHandler isavehandler = this.mc.getSaveLoader().getSaveLoader(this.func_146621_a(this.field_146640_r), false);
                 WorldInfo worldinfo = isavehandler.loadWorldInfo();
                 isavehandler.flush();
-                guicreateworld.func_146318_a(worldinfo);
+                guicreateworld.loadFromWorldInfo(worldinfo);
                 this.mc.displayGuiScreen(guicreateworld);
             }
             else

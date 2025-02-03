@@ -148,7 +148,7 @@ public class GuiSelectString extends GuiScreen
     @Override
     protected void mouseMovedOrUp(int x, int y, int mouseEvent)
     {
-        if (mouseEvent != 0 || !this.entriesList.func_148181_b(x, y, mouseEvent))
+        if (mouseEvent != 0 || !this.entriesList.handleMouseRelease(x, y, mouseEvent))
         {
             super.mouseMovedOrUp(x, y, mouseEvent);
         }

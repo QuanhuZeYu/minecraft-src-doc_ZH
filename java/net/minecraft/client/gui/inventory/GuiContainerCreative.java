@@ -503,7 +503,7 @@ public class GuiContainerCreative extends InventoryEffectRenderer
         int i = selectedTabIndex;
         selectedTabIndex = p_147050_1_.getTabIndex();
         GuiContainerCreative.ContainerCreative containercreative = (GuiContainerCreative.ContainerCreative)this.inventorySlots;
-        this.field_147008_s.clear();
+        this.dragSlots.clear();
         containercreative.itemList.clear();
         p_147050_1_.displayAllReleventItems(containercreative.itemList);
 
@@ -694,7 +694,7 @@ public class GuiContainerCreative extends InventoryEffectRenderer
             renderCreativeInventoryHoveringText(CreativeTabs.tabInventory, mouseX, mouseY);
         }
 
-        if (this.field_147064_C != null && selectedTabIndex == CreativeTabs.tabInventory.getTabIndex() && this.func_146978_c(this.field_147064_C.xDisplayPosition, this.field_147064_C.yDisplayPosition, 16, 16, mouseX, mouseY))
+        if (this.field_147064_C != null && selectedTabIndex == CreativeTabs.tabInventory.getTabIndex() && this.isInRegion(this.field_147064_C.xDisplayPosition, this.field_147064_C.yDisplayPosition, 16, 16, mouseX, mouseY))
         {
             this.drawCreativeTabHoveringText(I18n.format("inventory.binSlot", new Object[0]), mouseX, mouseY);
         }
@@ -908,7 +908,7 @@ public class GuiContainerCreative extends InventoryEffectRenderer
             i1 = b0 + this.ySize;
         }
 
-        if (this.func_146978_c(l + 3, i1 + 3, 23, 27, p_147052_2_, p_147052_3_))
+        if (this.isInRegion(l + 3, i1 + 3, 23, 27, p_147052_2_, p_147052_3_))
         {
             this.drawCreativeTabHoveringText(I18n.format(p_147052_1_.getTranslatedTabLabel(), new Object[0]), p_147052_2_, p_147052_3_);
             return true;

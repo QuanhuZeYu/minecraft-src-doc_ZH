@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import javax.imageio.ImageIO;
-import net.minecraft.block.Block;
+
 import net.minecraft.block.material.Material;
 import net.minecraft.client.audio.MusicTicker;
 import net.minecraft.client.audio.SoundHandler;
@@ -58,7 +58,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.gui.stream.GuiStreamUnavailable;
-import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -108,19 +107,10 @@ import net.minecraft.client.stream.TwitchStream;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLeashKnot;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
-import net.minecraft.entity.item.EntityBoat;
-import net.minecraft.entity.item.EntityItemFrame;
-import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.entity.item.EntityPainting;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Bootstrap;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.EnumConnectionState;
 import net.minecraft.network.NetworkManager;
@@ -860,9 +850,9 @@ public class Minecraft implements IPlayerUsage
         {
             this.setIngameNotInFocus();
             ScaledResolution scaledresolution = new ScaledResolution(this, this.displayWidth, this.displayHeight);
-            int i = scaledresolution.getScaledWidth();
-            int j = scaledresolution.getScaledHeight();
-            ((GuiScreen)guiScreenIn).setWorldAndResolution(this, i, j);
+            int width = scaledresolution.getScaledWidth();
+            int height = scaledresolution.getScaledHeight();
+            ((GuiScreen)guiScreenIn).setWorldAndResolution(this, width, height);
             this.skipRenderWorld = false;
         }
         else
@@ -2895,7 +2885,7 @@ public class Minecraft implements IPlayerUsage
 
         if (i != 0 && !Keyboard.isRepeatEvent())
         {
-            if (!(this.currentScreen instanceof GuiControls) || ((GuiControls)this.currentScreen).field_152177_g <= getSystemTime() - 20L)
+            if (!(this.currentScreen instanceof GuiControls) || ((GuiControls)this.currentScreen).lastKeyBindingTime <= getSystemTime() - 20L)
             {
                 if (Keyboard.getEventKeyState())
                 {

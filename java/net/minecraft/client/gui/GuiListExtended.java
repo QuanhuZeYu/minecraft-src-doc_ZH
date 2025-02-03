@@ -35,7 +35,7 @@ public abstract class GuiListExtended extends GuiSlot
         this.getListEntry(p_148126_1_).drawEntry(p_148126_1_, p_148126_2_, p_148126_3_, this.getListWidth(), p_148126_4_, p_148126_5_, p_148126_6_, p_148126_7_, this.func_148124_c(p_148126_6_, p_148126_7_) == p_148126_1_);
     }
 
-    public boolean func_148179_a(int p_148179_1_, int p_148179_2_, int p_148179_3_)
+    public boolean handleMouseClick(int p_148179_1_, int p_148179_2_, int p_148179_3_)
     {
         if (this.func_148141_e(p_148179_2_))
         {
@@ -59,7 +59,7 @@ public abstract class GuiListExtended extends GuiSlot
         return false;
     }
 
-    public boolean func_148181_b(int p_148181_1_, int p_148181_2_, int p_148181_3_)
+    public boolean handleMouseRelease(int p_148181_1_, int p_148181_2_, int p_148181_3_)
     {
         for (int l = 0; l < this.getSize(); ++l)
         {

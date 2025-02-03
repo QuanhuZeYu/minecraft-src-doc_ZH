@@ -7,58 +7,102 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 
+/**
+ * 游戏控制设置界面，用于管理按键绑定和部分游戏选项。
+ */
 @SideOnly(Side.CLIENT)
-public class GuiControls extends GuiScreen
-{
-    private static final GameSettings.Options[] field_146492_g = new GameSettings.Options[] {GameSettings.Options.INVERT_MOUSE, GameSettings.Options.SENSITIVITY, GameSettings.Options.TOUCHSCREEN};
-    /** A reference to the screen object that created this. Used for navigating between screens. */
+public class GuiControls extends GuiScreen {
+    // 预定义的常用游戏选项数组（鼠标反转、灵敏度、触摸屏）
+    private static final GameSettings.Options[] COMMON_OPTIONS = new GameSettings.Options[] {
+            GameSettings.Options.INVERT_MOUSE,
+            GameSettings.Options.SENSITIVITY,
+            GameSettings.Options.TOUCHSCREEN
+    };
+
+    /** 父级界面，用于返回时使用 */
     private GuiScreen parentScreen;
-    protected String field_146495_a = "Controls";
-    /** Reference to the GameSettings object. */
-    private GameSettings options;
-    /** The ID of the button that has been pressed. */
-    public KeyBinding buttonId = null;
-    public long field_152177_g;
+    /** 界面标题文本 */
+    protected String screenTitle = "Controls";
+    /** 游戏设置对象引用 */
+    private GameSettings gameSettings;
+    /** 当前选中的按键绑定项 */
+    public KeyBinding selectedKeyBinding = null;
+    /** 最后一次按键绑定的时间戳（用于防抖处理） */
+    public long lastKeyBindingTime;
+    /** 按键绑定列表组件 */
     private GuiKeyBindingList keyBindingList;
-    private GuiButton field_146493_s;
+    /** 重置所有按钮组件 */
+    private GuiButton resetAllButton;
+    /** 混淆标识符（代码混淆工具使用） */
     private static final String __OBFID = "CL_00000736";
 
-    public GuiControls(GuiScreen p_i1027_1_, GameSettings p_i1027_2_)
-    {
-        this.parentScreen = p_i1027_1_;
-        this.options = p_i1027_2_;
+    /**
+     * 构造控制设置界面
+     * @param parentScreen 父级界面
+     * @param gameSettings 游戏设置对象
+     */
+    public GuiControls(GuiScreen parentScreen, GameSettings gameSettings) {
+        this.parentScreen = parentScreen;
+        this.gameSettings = gameSettings;
     }
 
     /**
-     * Adds the buttons (and other controls) to the screen in question.
+     * 初始化界面组件
      */
-    public void initGui()
-    {
+    @Override
+    public void initGui() {
+        // 初始化按键绑定列表
         this.keyBindingList = new GuiKeyBindingList(this, this.mc);
-        this.buttonList.add(new GuiButton(200, this.width / 2 - 155, this.height - 29, 150, 20, I18n.format("gui.done", new Object[0])));
-        this.buttonList.add(this.field_146493_s = new GuiButton(201, this.width / 2 - 155 + 160, this.height - 29, 150, 20, I18n.format("controls.resetAll", new Object[0])));
-        this.field_146495_a = I18n.format("controls.title", new Object[0]);
-        int i = 0;
-        GameSettings.Options[] aoptions = field_146492_g;
-        int j = aoptions.length;
 
-        for (int k = 0; k < j; ++k)
-        {
-            GameSettings.Options options = aoptions[k];
+        // 添加底部操作按钮
+        this.buttonList.add(new GuiButton(
+                200,
+                this.width / 2 - 155,
+                this.height - 29,
+                150, 20,
+                I18n.format("gui.done")
+        ));
 
-            if (options.getEnumFloat())
-            {
-                this.buttonList.add(new GuiOptionSlider(options.returnEnumOrdinal(), this.width / 2 - 155 + i % 2 * 160, 18 + 24 * (i >> 1), options));
+        this.buttonList.add(this.resetAllButton = new GuiButton(
+                201,
+                this.width / 2 - 155 + 160,
+                this.height - 29,
+                150, 20,
+                I18n.format("controls.resetAll")
+        ));
+
+        // 设置本地化标题
+        this.screenTitle = I18n.format("controls.title");
+
+        // 创建选项按钮（两列布局）
+        int optionIndex = 0;
+        for (GameSettings.Options option : COMMON_OPTIONS) {
+            int xPos = this.width / 2 - 155 + (optionIndex % 2) * 160;
+            int yPos = 18 + 24 * (optionIndex / 2);
+
+            if (option.isFloatOption()) {
+                this.buttonList.add(new GuiOptionSlider(
+                        option.ordinal(),
+                        xPos, yPos,
+                        option
+                ));
+            } else {
+                this.buttonList.add(new GuiOptionButton(
+                        option.ordinal(),
+                        xPos, yPos,
+                        option,
+                        this.gameSettings.getKeyBinding(option)
+                ));
             }
-            else
-            {
-                this.buttonList.add(new GuiOptionButton(options.returnEnumOrdinal(), this.width / 2 - 155 + i % 2 * 160, 18 + 24 * (i >> 1), options, this.options.getKeyBinding(options)));
-            }
-
-            ++i;
+            optionIndex++;
         }
     }
 
+    /**
+     * 处理按钮点击事件
+     * @param button 被点击的按钮对象
+     */
+    @Override
     protected void actionPerformed(GuiButton button)
     {
         if (button.id == 200)
@@ -80,90 +124,96 @@ public class GuiControls extends GuiScreen
         }
         else if (button.id < 100 && button instanceof GuiOptionButton)
         {
-            this.options.setOptionValue(((GuiOptionButton)button).returnEnumOptions(), 1);
-            button.displayString = this.options.getKeyBinding(GameSettings.Options.getEnumOptions(button.id));
+            this.gameSettings.setOptionValue(((GuiOptionButton)button).returnEnumOptions(), 1);
+            button.displayString = this.gameSettings.getKeyBinding(GameSettings.Options.getEnumOptions(button.id));
         }
     }
 
     /**
-     * Called when the mouse is clicked.
+     * 处理鼠标点击事件
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @param mouseButton 鼠标按钮
      */
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
-    {
-        if (this.buttonId != null)
-        {
-            this.options.setOptionKeyBinding(this.buttonId, -100 + mouseButton);
-            this.buttonId = null;
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        if (this.selectedKeyBinding != null) {
+            // 设置鼠标按键绑定（左键-100，右键-99）
+            this.gameSettings.setOptionKeyBinding(this.selectedKeyBinding, -100 + mouseButton);
+            this.selectedKeyBinding = null;
             KeyBinding.resetKeyBindingArrayAndHash();
-        }
-        else if (mouseButton != 0 || !this.keyBindingList.func_148179_a(mouseX, mouseY, mouseButton))
-        {
-            super.mouseClicked(mouseX, mouseY, mouseButton);
+        } else {
+            // 尝试处理列表项点击
+            if (!this.keyBindingList.handleMouseClick(mouseX, mouseY, mouseButton)) {
+                super.mouseClicked(mouseX, mouseY, mouseButton);
+            }
         }
     }
 
     /**
-     * Called when the mouse is moved or a mouse button is released.  Signature: (mouseX, mouseY, which) which==-1 is
-     * mouseMove, which==0 or which==1 is mouseUp
+     * 处理鼠标释放事件
      */
-    protected void mouseMovedOrUp(int mouseX, int mouseY, int state)
-    {
-        if (state != 0 || !this.keyBindingList.func_148181_b(mouseX, mouseY, state))
-        {
+    @Override
+    protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+        if (!this.keyBindingList.handleMouseRelease(mouseX, mouseY, state)) {
             super.mouseMovedOrUp(mouseX, mouseY, state);
         }
     }
 
     /**
-     * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * 处理键盘输入事件
+     * @param typedChar 输入的字符
+     * @param keyCode 按键代码
      */
-    protected void keyTyped(char typedChar, int keyCode)
-    {
-        if (this.buttonId != null)
-        {
-            if (keyCode == 1)
-            {
-                this.options.setOptionKeyBinding(this.buttonId, 0);
+    @Override
+    protected void keyTyped(char typedChar, int keyCode) {
+        if (this.selectedKeyBinding != null) {
+            if (keyCode == 1) { // ESC键
+                this.gameSettings.setOptionKeyBinding(this.selectedKeyBinding, 0);
+            } else {
+                this.gameSettings.setOptionKeyBinding(this.selectedKeyBinding, keyCode);
             }
-            else
-            {
-                this.options.setOptionKeyBinding(this.buttonId, keyCode);
-            }
-
-            this.buttonId = null;
-            this.field_152177_g = Minecraft.getSystemTime();
+            this.selectedKeyBinding = null;
+            this.lastKeyBindingTime = Minecraft.getSystemTime();
             KeyBinding.resetKeyBindingArrayAndHash();
-        }
-        else
-        {
+        } else {
             super.keyTyped(typedChar, keyCode);
         }
     }
 
     /**
-     * Draws the screen and all the components in it.
+     * 绘制界面
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @param partialTicks 部分时钟周期（用于动画）
      */
-    public void drawScreen(int mouseX, int mouseY, float partialTicks)
-    {
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        // 绘制默认背景
         this.drawDefaultBackground();
+
+        // 绘制按键绑定列表
         this.keyBindingList.drawScreen(mouseX, mouseY, partialTicks);
-        this.drawCenteredString(this.fontRendererObj, this.field_146495_a, this.width / 2, 8, 16777215);
-        boolean flag = true;
-        KeyBinding[] akeybinding = this.options.keyBindings;
-        int k = akeybinding.length;
 
-        for (int l = 0; l < k; ++l)
-        {
-            KeyBinding keybinding = akeybinding[l];
+        // 绘制标题
+        this.drawCenteredString(
+                this.fontRendererObj,
+                this.screenTitle,
+                this.width / 2, 8,
+                0xFFFFFF
+        );
 
-            if (keybinding.getKeyCode() != keybinding.getKeyCodeDefault())
-            {
-                flag = false;
+        // 检查是否需要禁用重置按钮
+        boolean isDefaultSettings = true;
+        for (KeyBinding keyBinding : this.gameSettings.keyBindings) {
+            if (keyBinding.getKeyCode() != keyBinding.getKeyCodeDefault()) {
+                isDefaultSettings = false;
                 break;
             }
         }
+        this.resetAllButton.enabled = !isDefaultSettings;
 
-        this.field_146493_s.enabled = !flag;
+        // 绘制其他组件
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 }

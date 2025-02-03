@@ -279,7 +279,7 @@ public class WorldType
     {
         if (this == FLAT)
         {
-            instance.displayGuiScreen(new GuiCreateFlatWorld(guiCreateWorld, guiCreateWorld.field_146334_a));
+            instance.displayGuiScreen(new GuiCreateFlatWorld(guiCreateWorld, guiCreateWorld.generatorOptions));
         }
     }
 

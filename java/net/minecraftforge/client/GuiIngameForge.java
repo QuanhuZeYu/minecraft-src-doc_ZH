@@ -161,7 +161,7 @@ public class GuiIngameForge extends GuiIngame
         ScoreObjective objective = mc.theWorld.getScoreboard().func_96539_a(1);
         if (renderObjective && objective != null)
         {
-            this.func_96136_a(objective, height, width, fontrenderer);
+            this.renderScoreboard(objective, height, width, fontrenderer);
         }
 
         GL11.glEnable(GL11.GL_BLEND);
@@ -584,11 +584,11 @@ public class GuiIngameForge extends GuiIngame
         {
             mc.mcProfiler.startSection("toolHighlight");
 
-            if (this.remainingHighlightTicks > 0 && this.highlightingItemStack != null)
+            if (this.highlightDuration > 0 && this.highlightedItemStack != null)
             {
-                String name = this.highlightingItemStack.getDisplayName();
+                String name = this.highlightedItemStack.getDisplayName();
 
-                int opacity = (int)((float)this.remainingHighlightTicks * 256.0F / 10.0F);
+                int opacity = (int)((float)this.highlightDuration * 256.0F / 10.0F);
                 if (opacity > 255) opacity = 255;
 
                 if (opacity > 0)
@@ -599,7 +599,7 @@ public class GuiIngameForge extends GuiIngame
                     GL11.glPushMatrix();
                     GL11.glEnable(GL11.GL_BLEND);
                     OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-                    FontRenderer font = highlightingItemStack.getItem().getFontRenderer(highlightingItemStack);
+                    FontRenderer font = highlightedItemStack.getItem().getFontRenderer(highlightedItemStack);
                     if (font != null)
                     {
                         int x = (width - font.getStringWidth(name)) / 2;
@@ -726,10 +726,10 @@ public class GuiIngameForge extends GuiIngame
 
     protected void renderRecordOverlay(int width, int height, float partialTicks)
     {
-        if (recordPlayingUpFor > 0)
+        if (recordDisplayTime > 0)
         {
             mc.mcProfiler.startSection("overlayMessage");
-            float hue = (float)recordPlayingUpFor - partialTicks;
+            float hue = (float) recordDisplayTime - partialTicks;
             int opacity = (int)(hue * 256.0F / 20.0F);
             if (opacity > 255) opacity = 255;
 
@@ -739,8 +739,8 @@ public class GuiIngameForge extends GuiIngame
                 GL11.glTranslatef((float)(width / 2), (float)(height - 48), 0.0F);
                 GL11.glEnable(GL11.GL_BLEND);
                 OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-                int color = (recordIsPlaying ? Color.HSBtoRGB(hue / 50.0F, 0.7F, 0.6F) & WHITE : WHITE);
-                fontrenderer.drawString(recordPlaying, -fontrenderer.getStringWidth(recordPlaying) / 2, -4, color | (opacity << 24));
+                int color = (isRecordPlaying ? Color.HSBtoRGB(hue / 50.0F, 0.7F, 0.6F) & WHITE : WHITE);
+                fontrenderer.drawString(currentRecordName, -fontrenderer.getStringWidth(currentRecordName) / 2, -4, color | (opacity << 24));
                 GL11.glDisable(GL11.GL_BLEND);
                 GL11.glPopMatrix();
             }
@@ -758,7 +758,7 @@ public class GuiIngameForge extends GuiIngame
 
         GL11.glPushMatrix();
         GL11.glTranslatef((float)event.posX, (float)event.posY, 0.0F);
-        persistantChatGUI.drawChat(updateCounter);
+        persistentChatGUI.drawChat(updateCounter);
         GL11.glPopMatrix();
 
         post(CHAT);

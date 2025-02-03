@@ -178,15 +178,15 @@ public class GuiMerchant extends GuiContainer
             itemRender.zLevel = 0.0F;
             GL11.glDisable(GL11.GL_LIGHTING);
 
-            if (this.func_146978_c(36, 24, 16, 16, mouseX, mouseY))
+            if (this.isInRegion(36, 24, 16, 16, mouseX, mouseY))
             {
                 this.renderToolTip(itemstack, mouseX, mouseY);
             }
-            else if (itemstack1 != null && this.func_146978_c(62, 24, 16, 16, mouseX, mouseY))
+            else if (itemstack1 != null && this.isInRegion(62, 24, 16, 16, mouseX, mouseY))
             {
                 this.renderToolTip(itemstack1, mouseX, mouseY);
             }
-            else if (this.func_146978_c(120, 24, 16, 16, mouseX, mouseY))
+            else if (this.isInRegion(120, 24, 16, 16, mouseX, mouseY))
             {
                 this.renderToolTip(itemstack2, mouseX, mouseY);
             }

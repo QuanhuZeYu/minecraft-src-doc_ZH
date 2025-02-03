@@ -292,7 +292,7 @@ public class GuiConfig extends GuiScreen
     @Override
     protected void mouseClicked(int x, int y, int mouseEvent)
     {
-        if (mouseEvent != 0 || !this.entryList.func_148179_a(x, y, mouseEvent))
+        if (mouseEvent != 0 || !this.entryList.handleMouseClick(x, y, mouseEvent))
         {
             this.entryList.mouseClicked(x, y, mouseEvent);
             super.mouseClicked(x, y, mouseEvent);
@@ -306,7 +306,7 @@ public class GuiConfig extends GuiScreen
     @Override
     protected void mouseMovedOrUp(int x, int y, int mouseEvent)
     {
-        if (mouseEvent != 0 || !this.entryList.func_148181_b(x, y, mouseEvent))
+        if (mouseEvent != 0 || !this.entryList.handleMouseRelease(x, y, mouseEvent))
         {
             super.mouseMovedOrUp(x, y, mouseEvent);
         }

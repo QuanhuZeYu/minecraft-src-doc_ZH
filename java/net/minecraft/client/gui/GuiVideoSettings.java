@@ -77,7 +77,7 @@ public class GuiVideoSettings extends GuiScreen
     {
         int l = this.guiGameSettings.guiScale;
         super.mouseClicked(mouseX, mouseY, mouseButton);
-        this.optionsRowList.func_148179_a(mouseX, mouseY, mouseButton);
+        this.optionsRowList.handleMouseClick(mouseX, mouseY, mouseButton);
 
         if (this.guiGameSettings.guiScale != l)
         {
@@ -96,7 +96,7 @@ public class GuiVideoSettings extends GuiScreen
     {
         int l = this.guiGameSettings.guiScale;
         super.mouseMovedOrUp(mouseX, mouseY, state);
-        this.optionsRowList.func_148181_b(mouseX, mouseY, state);
+        this.optionsRowList.handleMouseRelease(mouseX, mouseY, state);
 
         if (this.guiGameSettings.guiScale != l)
         {

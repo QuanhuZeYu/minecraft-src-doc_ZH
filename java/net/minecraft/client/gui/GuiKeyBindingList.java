@@ -132,7 +132,7 @@ public class GuiKeyBindingList extends GuiListExtended
 
         public void drawEntry(int p_148279_1_, int p_148279_2_, int p_148279_3_, int p_148279_4_, int p_148279_5_, Tessellator p_148279_6_, int p_148279_7_, int p_148279_8_, boolean p_148279_9_)
         {
-            boolean flag1 = GuiKeyBindingList.this.field_148191_k.buttonId == this.field_148282_b;
+            boolean flag1 = GuiKeyBindingList.this.field_148191_k.selectedKeyBinding == this.field_148282_b;
             GuiKeyBindingList.this.mc.fontRenderer.drawString(this.field_148283_c, p_148279_2_ + 90 - GuiKeyBindingList.this.field_148188_n, p_148279_3_ + p_148279_5_ / 2 - GuiKeyBindingList.this.mc.fontRenderer.FONT_HEIGHT / 2, 16777215);
             this.btnReset.xPosition = p_148279_2_ + 190;
             this.btnReset.yPosition = p_148279_3_;
@@ -179,7 +179,7 @@ public class GuiKeyBindingList extends GuiListExtended
         {
             if (this.btnChangeKeyBinding.mousePressed(GuiKeyBindingList.this.mc, p_148278_2_, p_148278_3_))
             {
-                GuiKeyBindingList.this.field_148191_k.buttonId = this.field_148282_b;
+                GuiKeyBindingList.this.field_148191_k.selectedKeyBinding = this.field_148282_b;
                 return true;
             }
             else if (this.btnReset.mousePressed(GuiKeyBindingList.this.mc, p_148278_2_, p_148278_3_))

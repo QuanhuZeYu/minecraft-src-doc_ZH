@@ -26,53 +26,57 @@ import org.lwjgl.opengl.GL12;
 @SideOnly(Side.CLIENT)
 public abstract class GuiContainer extends GuiScreen
 {
-    protected static final ResourceLocation field_147001_a = new ResourceLocation("textures/gui/container/inventory.png");
-    /** The X size of the inventory window in pixels. */
+    protected static final ResourceLocation inventoryBackgroundTexture = new ResourceLocation("textures/gui/container/inventory.png");
+    /** 物品栏窗口的X轴大小（以像素为单位） */
     protected int xSize = 176;
-    /** The Y size of the inventory window in pixels. */
+    /** 物品栏窗口的Y轴大小（以像素为单位） */
     protected int ySize = 166;
-    /** A list of the players inventory slots */
+    /** 玩家物品栏槽位的列表 */
     public Container inventorySlots;
-    /** Starting X position for the Gui. Inconsistent use for Gui backgrounds. */
+    /** GUI的起始X位置。用于GUI背景的不一致使用。 */
     protected int guiLeft;
-    /** Starting Y position for the Gui. Inconsistent use for Gui backgrounds. */
+    /** GUI的起始Y位置。用于GUI背景的不一致使用。 */
     protected int guiTop;
     private Slot theSlot;
-    /** Used when touchscreen is enabled. */
+    /** 当启用触摸屏时使用。 */
     private Slot clickedSlot;
-    /** Used when touchscreen is enabled. */
+    /** 当启用触摸屏时使用。 */
     private boolean isRightMouseClick;
-    /** Used when touchscreen is enabled */
+    /** 当启用触摸屏时使用 */
     private ItemStack draggedStack;
-    private int field_147011_y;
-    private int field_147010_z;
+    private int draggedStackOffsetX;
+    private int draggedStackOffsetY;
     private Slot returningStackDestSlot;
     private long returningStackTime;
-    /** Used when touchscreen is enabled */
+    /** 当启用触摸屏时使用 */
     private ItemStack returningStack;
-    private Slot field_146985_D;
-    private long field_146986_E;
-    protected final Set<net.minecraft.inventory.Slot> field_147008_s = new HashSet();
-    protected boolean field_147007_t;
-    private int field_146987_F;
-    private int field_146988_G;
-    private boolean field_146995_H;
-    private int field_146996_I;
-    private long field_146997_J;
-    private Slot field_146998_K;
-    private int field_146992_L;
-    private boolean field_146993_M;
-    private ItemStack field_146994_N;
+    private Slot lastDragSlot;
+    private long lastDragTime;
+    protected final Set<net.minecraft.inventory.Slot> dragSlots = new HashSet();
+    protected boolean isDragging;
+    private int dragMode;
+    private int dragButton;
+    private boolean isQuickCrafting;
+    private int quickCraftingAmount;
+    private long lastClickTime;
+    private Slot lastClickSlot;
+    private int lastClickButton;
+    private boolean isDoubleClick;
+    private ItemStack lastClickStack;
     private static final String __OBFID = "CL_00000737";
 
+    /**
+     * 构造函数，初始化容器。
+     * @param p_i1072_1_ 容器对象
+     */
     public GuiContainer(Container p_i1072_1_)
     {
         this.inventorySlots = p_i1072_1_;
-        this.field_146995_H = true;
+        this.isQuickCrafting = true;
     }
 
     /**
-     * Adds the buttons (and other controls) to the screen in question.
+     * 初始化GUI，添加按钮和其他控件。
      */
     public void initGui()
     {
@@ -83,7 +87,10 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Draws the screen and all the components in it.
+     * 绘制屏幕及其所有组件。
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @param partialTicks 部分刻
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
@@ -111,7 +118,7 @@ public abstract class GuiContainer extends GuiScreen
         for (int i1 = 0; i1 < this.inventorySlots.inventorySlots.size(); ++i1)
         {
             Slot slot = (Slot)this.inventorySlots.inventorySlots.get(i1);
-            this.func_146977_a(slot);
+            this.drawSlot(slot);
 
             if (this.isMouseOverSlot(slot, mouseX, mouseY) && slot.func_111238_b())
             {
@@ -128,8 +135,7 @@ public abstract class GuiContainer extends GuiScreen
             }
         }
 
-        //Forge: Force lighting to be disabled as there are some issue where lighting would
-        //incorrectly be applied based on items that are in the inventory.
+        //Forge: 强制禁用光照，因为存在一些问题，光照可能会根据物品栏中的物品错误地应用。
         GL11.glDisable(GL11.GL_LIGHTING);
         this.drawGuiContainerForegroundLayer(mouseX, mouseY);
         GL11.glEnable(GL11.GL_LIGHTING);
@@ -147,10 +153,10 @@ public abstract class GuiContainer extends GuiScreen
                 itemstack = itemstack.copy();
                 itemstack.stackSize = MathHelper.ceiling_float_int((float)itemstack.stackSize / 2.0F);
             }
-            else if (this.field_147007_t && this.field_147008_s.size() > 1)
+            else if (this.isDragging && this.dragSlots.size() > 1)
             {
                 itemstack = itemstack.copy();
-                itemstack.stackSize = this.field_146996_I;
+                itemstack.stackSize = this.quickCraftingAmount;
 
                 if (itemstack.stackSize == 0)
                 {
@@ -171,10 +177,10 @@ public abstract class GuiContainer extends GuiScreen
                 this.returningStack = null;
             }
 
-            k1 = this.returningStackDestSlot.xDisplayPosition - this.field_147011_y;
-            int j2 = this.returningStackDestSlot.yDisplayPosition - this.field_147010_z;
-            int l1 = this.field_147011_y + (int)((float)k1 * f1);
-            int i2 = this.field_147010_z + (int)((float)j2 * f1);
+            k1 = this.returningStackDestSlot.xDisplayPosition - this.draggedStackOffsetX;
+            int j2 = this.returningStackDestSlot.yDisplayPosition - this.draggedStackOffsetY;
+            int l1 = this.draggedStackOffsetX + (int)((float)k1 * f1);
+            int i2 = this.draggedStackOffsetY + (int)((float)j2 * f1);
             this.drawItemStack(this.returningStack, l1, i2, (String)null);
         }
 
@@ -191,6 +197,13 @@ public abstract class GuiContainer extends GuiScreen
         RenderHelper.enableStandardItemLighting();
     }
 
+    /**
+     * 绘制物品堆栈。
+     * @param stack 物品堆栈
+     * @param x X坐标
+     * @param y Y坐标
+     * @param altText 替代文本
+     */
     private void drawItemStack(ItemStack stack, int x, int y, String altText)
     {
         GL11.glTranslatef(0.0F, 0.0F, 32.0F);
@@ -206,13 +219,25 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Draw the foreground layer for the GuiContainer (everything in front of the items)
+     * 绘制GuiContainer的前景层（物品前面的所有内容）。
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
      */
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {}
 
+    /**
+     * 绘制GuiContainer的背景层。
+     * @param partialTicks 部分刻
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     */
     protected abstract void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY);
 
-    private void func_146977_a(Slot slotIn)
+    /**
+     * 绘制槽位。
+     * @param slotIn 槽位
+     */
+    private void drawSlot(Slot slotIn)
     {
         int i = slotIn.xDisplayPosition;
         int j = slotIn.yDisplayPosition;
@@ -227,9 +252,9 @@ public abstract class GuiContainer extends GuiScreen
             itemstack = itemstack.copy();
             itemstack.stackSize /= 2;
         }
-        else if (this.field_147007_t && this.field_147008_s.contains(slotIn) && itemstack1 != null)
+        else if (this.isDragging && this.dragSlots.contains(slotIn) && itemstack1 != null)
         {
-            if (this.field_147008_s.size() == 1)
+            if (this.dragSlots.size() == 1)
             {
                 return;
             }
@@ -238,7 +263,7 @@ public abstract class GuiContainer extends GuiScreen
             {
                 itemstack = itemstack1.copy();
                 flag = true;
-                Container.func_94525_a(this.field_147008_s, this.field_146987_F, itemstack, slotIn.getStack() == null ? 0 : slotIn.getStack().stackSize);
+                Container.func_94525_a(this.dragSlots, this.dragMode, itemstack, slotIn.getStack() == null ? 0 : slotIn.getStack().stackSize);
 
                 if (itemstack.stackSize > itemstack.getMaxStackSize())
                 {
@@ -254,8 +279,8 @@ public abstract class GuiContainer extends GuiScreen
             }
             else
             {
-                this.field_147008_s.remove(slotIn);
-                this.func_146980_g();
+                this.dragSlots.remove(slotIn);
+                this.updateDragItem();
             }
         }
 
@@ -269,10 +294,10 @@ public abstract class GuiContainer extends GuiScreen
             if (iicon != null)
             {
                 GL11.glDisable(GL11.GL_LIGHTING);
-                GL11.glEnable(GL11.GL_BLEND); // Forge: Blending needs to be enabled for this.
+                GL11.glEnable(GL11.GL_BLEND); // Forge: 需要启用混合
                 this.mc.getTextureManager().bindTexture(TextureMap.locationItemsTexture);
                 this.drawTexturedModelRectFromIcon(i, j, iicon, 16, 16);
-                GL11.glDisable(GL11.GL_BLEND); // Forge: And clean that up
+                GL11.glDisable(GL11.GL_BLEND); // Forge: 清理
                 GL11.glEnable(GL11.GL_LIGHTING);
                 flag1 = true;
             }
@@ -294,22 +319,25 @@ public abstract class GuiContainer extends GuiScreen
         this.zLevel = 0.0F;
     }
 
-    private void func_146980_g()
+    /**
+     * 更新拖拽物品的数量。
+     */
+    private void updateDragItem()
     {
         ItemStack itemstack = this.mc.thePlayer.inventory.getItemStack();
 
-        if (itemstack != null && this.field_147007_t)
+        if (itemstack != null && this.isDragging)
         {
-            this.field_146996_I = itemstack.stackSize;
+            this.quickCraftingAmount = itemstack.stackSize;
             ItemStack itemstack1;
             int i;
 
-            for (Iterator iterator = this.field_147008_s.iterator(); iterator.hasNext(); this.field_146996_I -= itemstack1.stackSize - i)
+            for (Iterator iterator = this.dragSlots.iterator(); iterator.hasNext(); this.quickCraftingAmount -= itemstack1.stackSize - i)
             {
                 Slot slot = (Slot)iterator.next();
                 itemstack1 = itemstack.copy();
                 i = slot.getStack() == null ? 0 : slot.getStack().stackSize;
-                Container.func_94525_a(this.field_147008_s, this.field_146987_F, itemstack1, i);
+                Container.func_94525_a(this.dragSlots, this.dragMode, itemstack1, i);
 
                 if (itemstack1.stackSize > itemstack1.getMaxStackSize())
                 {
@@ -325,7 +353,10 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Returns the slot at the given coordinates or null if there is none.
+     * 返回给定坐标处的槽位，如果没有则返回null。
+     * @param x X坐标
+     * @param y Y坐标
+     * @return 槽位
      */
     private Slot getSlotAtPosition(int x, int y)
     {
@@ -343,7 +374,10 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Called when the mouse is clicked.
+     * 当鼠标点击时调用。
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @param mouseButton 鼠标按钮
      */
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
     {
@@ -351,8 +385,8 @@ public abstract class GuiContainer extends GuiScreen
         boolean flag = mouseButton == this.mc.gameSettings.keyBindPickBlock.getKeyCode() + 100;
         Slot slot = this.getSlotAtPosition(mouseX, mouseY);
         long l = Minecraft.getSystemTime();
-        this.field_146993_M = this.field_146998_K == slot && l - this.field_146997_J < 250L && this.field_146992_L == mouseButton;
-        this.field_146995_H = false;
+        this.isDoubleClick = this.lastClickSlot == slot && l - this.lastClickTime < 250L && this.lastClickButton == mouseButton;
+        this.isQuickCrafting = false;
 
         if (mouseButton == 0 || mouseButton == 1 || flag)
         {
@@ -392,7 +426,7 @@ public abstract class GuiContainer extends GuiScreen
                         this.clickedSlot = null;
                     }
                 }
-                else if (!this.field_147007_t)
+                else if (!this.isDragging)
                 {
                     if (this.mc.thePlayer.inventory.getItemStack() == null)
                     {
@@ -407,7 +441,7 @@ public abstract class GuiContainer extends GuiScreen
 
                             if (flag2)
                             {
-                                this.field_146994_N = slot != null && slot.getHasStack() ? slot.getStack() : null;
+                                this.lastClickStack = slot != null && slot.getHasStack() ? slot.getStack() : null;
                                 b0 = 1;
                             }
                             else if (k1 == -999)
@@ -418,35 +452,38 @@ public abstract class GuiContainer extends GuiScreen
                             this.handleMouseClick(slot, k1, mouseButton, b0);
                         }
 
-                        this.field_146995_H = true;
+                        this.isQuickCrafting = true;
                     }
                     else
                     {
-                        this.field_147007_t = true;
-                        this.field_146988_G = mouseButton;
-                        this.field_147008_s.clear();
+                        this.isDragging = true;
+                        this.dragButton = mouseButton;
+                        this.dragSlots.clear();
 
                         if (mouseButton == 0)
                         {
-                            this.field_146987_F = 0;
+                            this.dragMode = 0;
                         }
                         else if (mouseButton == 1)
                         {
-                            this.field_146987_F = 1;
+                            this.dragMode = 1;
                         }
                     }
                 }
             }
         }
 
-        this.field_146998_K = slot;
-        this.field_146997_J = l;
-        this.field_146992_L = mouseButton;
+        this.lastClickSlot = slot;
+        this.lastClickTime = l;
+        this.lastClickButton = mouseButton;
     }
 
     /**
-     * Called when a mouse button is pressed and the mouse is moved around. Parameters are : mouseX, mouseY,
-     * lastButtonClicked & timeSinceMouseClick.
+     * 当鼠标按钮按下并移动时调用。参数为：mouseX, mouseY, lastButtonClicked & timeSinceMouseClick。
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @param clickedMouseButton 点击的鼠标按钮
+     * @param timeSinceLastClick 自上次点击以来的时间
      */
     protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick)
     {
@@ -468,39 +505,41 @@ public abstract class GuiContainer extends GuiScreen
                 {
                     long i1 = Minecraft.getSystemTime();
 
-                    if (this.field_146985_D == slot)
+                    if (this.lastDragSlot == slot)
                     {
-                        if (i1 - this.field_146986_E > 500L)
+                        if (i1 - this.lastDragTime > 500L)
                         {
                             this.handleMouseClick(this.clickedSlot, this.clickedSlot.slotNumber, 0, 0);
                             this.handleMouseClick(slot, slot.slotNumber, 1, 0);
                             this.handleMouseClick(this.clickedSlot, this.clickedSlot.slotNumber, 0, 0);
-                            this.field_146986_E = i1 + 750L;
+                            this.lastDragTime = i1 + 750L;
                             --this.draggedStack.stackSize;
                         }
                     }
                     else
                     {
-                        this.field_146985_D = slot;
-                        this.field_146986_E = i1;
+                        this.lastDragSlot = slot;
+                        this.lastDragTime = i1;
                     }
                 }
             }
         }
-        else if (this.field_147007_t && slot != null && itemstack != null && itemstack.stackSize > this.field_147008_s.size() && Container.func_94527_a(slot, itemstack, true) && slot.isItemValid(itemstack) && this.inventorySlots.canDragIntoSlot(slot))
+        else if (this.isDragging && slot != null && itemstack != null && itemstack.stackSize > this.dragSlots.size() && Container.func_94527_a(slot, itemstack, true) && slot.isItemValid(itemstack) && this.inventorySlots.canDragIntoSlot(slot))
         {
-            this.field_147008_s.add(slot);
-            this.func_146980_g();
+            this.dragSlots.add(slot);
+            this.updateDragItem();
         }
     }
 
     /**
-     * Called when the mouse is moved or a mouse button is released.  Signature: (mouseX, mouseY, which) which==-1 is
-     * mouseMove, which==0 or which==1 is mouseUp
+     * 当鼠标移动或鼠标按钮释放时调用。签名：(mouseX, mouseY, which) which==-1 是鼠标移动，which==0 或 which==1 是鼠标释放。
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @param state 状态
      */
     protected void mouseMovedOrUp(int mouseX, int mouseY, int state)
     {
-        super.mouseMovedOrUp(mouseX, mouseY, state); //Forge, Call parent to release buttons
+        super.mouseMovedOrUp(mouseX, mouseY, state); //Forge, 调用父类以释放按钮
         Slot slot = this.getSlotAtPosition(mouseX, mouseY);
         int l = this.guiLeft;
         int i1 = this.guiTop;
@@ -520,11 +559,11 @@ public abstract class GuiContainer extends GuiScreen
         Slot slot1;
         Iterator iterator;
 
-        if (this.field_146993_M && slot != null && state == 0 && this.inventorySlots.func_94530_a((ItemStack)null, slot))
+        if (this.isDoubleClick && slot != null && state == 0 && this.inventorySlots.func_94530_a((ItemStack)null, slot))
         {
             if (isShiftKeyDown())
             {
-                if (slot != null && slot.inventory != null && this.field_146994_N != null)
+                if (slot != null && slot.inventory != null && this.lastClickStack != null)
                 {
                     iterator = this.inventorySlots.inventorySlots.iterator();
 
@@ -532,7 +571,7 @@ public abstract class GuiContainer extends GuiScreen
                     {
                         slot1 = (Slot)iterator.next();
 
-                        if (slot1 != null && slot1.canTakeStack(this.mc.thePlayer) && slot1.getHasStack() && slot1.inventory == slot.inventory && Container.func_94527_a(slot1, this.field_146994_N, true))
+                        if (slot1 != null && slot1.canTakeStack(this.mc.thePlayer) && slot1.getHasStack() && slot1.inventory == slot.inventory && Container.func_94527_a(slot1, this.lastClickStack, true))
                         {
                             this.handleMouseClick(slot1, slot1.slotNumber, state, 1);
                         }
@@ -544,22 +583,22 @@ public abstract class GuiContainer extends GuiScreen
                 this.handleMouseClick(slot, j1, state, 6);
             }
 
-            this.field_146993_M = false;
-            this.field_146997_J = 0L;
+            this.isDoubleClick = false;
+            this.lastClickTime = 0L;
         }
         else
         {
-            if (this.field_147007_t && this.field_146988_G != state)
+            if (this.isDragging && this.dragButton != state)
             {
-                this.field_147007_t = false;
-                this.field_147008_s.clear();
-                this.field_146995_H = true;
+                this.isDragging = false;
+                this.dragSlots.clear();
+                this.isQuickCrafting = true;
                 return;
             }
 
-            if (this.field_146995_H)
+            if (this.isQuickCrafting)
             {
-                this.field_146995_H = false;
+                this.isQuickCrafting = false;
                 return;
             }
 
@@ -584,8 +623,8 @@ public abstract class GuiContainer extends GuiScreen
                         if (this.mc.thePlayer.inventory.getItemStack() != null)
                         {
                             this.handleMouseClick(this.clickedSlot, this.clickedSlot.slotNumber, state, 0);
-                            this.field_147011_y = mouseX - l;
-                            this.field_147010_z = mouseY - i1;
+                            this.draggedStackOffsetX = mouseX - l;
+                            this.draggedStackOffsetY = mouseY - i1;
                             this.returningStackDestSlot = this.clickedSlot;
                             this.returningStack = this.draggedStack;
                             this.returningStackTime = Minecraft.getSystemTime();
@@ -597,8 +636,8 @@ public abstract class GuiContainer extends GuiScreen
                     }
                     else if (this.draggedStack != null)
                     {
-                        this.field_147011_y = mouseX - l;
-                        this.field_147010_z = mouseY - i1;
+                        this.draggedStackOffsetX = mouseX - l;
+                        this.draggedStackOffsetY = mouseY - i1;
                         this.returningStackDestSlot = this.clickedSlot;
                         this.returningStack = this.draggedStack;
                         this.returningStackTime = Minecraft.getSystemTime();
@@ -608,18 +647,18 @@ public abstract class GuiContainer extends GuiScreen
                     this.clickedSlot = null;
                 }
             }
-            else if (this.field_147007_t && !this.field_147008_s.isEmpty())
+            else if (this.isDragging && !this.dragSlots.isEmpty())
             {
-                this.handleMouseClick((Slot)null, -999, Container.func_94534_d(0, this.field_146987_F), 5);
-                iterator = this.field_147008_s.iterator();
+                this.handleMouseClick((Slot)null, -999, Container.func_94534_d(0, this.dragMode), 5);
+                iterator = this.dragSlots.iterator();
 
                 while (iterator.hasNext())
                 {
                     slot1 = (Slot)iterator.next();
-                    this.handleMouseClick(slot1, slot1.slotNumber, Container.func_94534_d(1, this.field_146987_F), 5);
+                    this.handleMouseClick(slot1, slot1.slotNumber, Container.func_94534_d(1, this.dragMode), 5);
                 }
 
-                this.handleMouseClick((Slot)null, -999, Container.func_94534_d(2, this.field_146987_F), 5);
+                this.handleMouseClick((Slot)null, -999, Container.func_94534_d(2, this.dragMode), 5);
             }
             else if (this.mc.thePlayer.inventory.getItemStack() != null)
             {
@@ -633,7 +672,7 @@ public abstract class GuiContainer extends GuiScreen
 
                     if (flag1)
                     {
-                        this.field_146994_N = slot != null && slot.getHasStack() ? slot.getStack() : null;
+                        this.lastClickStack = slot != null && slot.getHasStack() ? slot.getStack() : null;
                     }
 
                     this.handleMouseClick(slot, j1, state, flag1 ? 1 : 0);
@@ -643,21 +682,35 @@ public abstract class GuiContainer extends GuiScreen
 
         if (this.mc.thePlayer.inventory.getItemStack() == null)
         {
-            this.field_146997_J = 0L;
+            this.lastClickTime = 0L;
         }
 
-        this.field_147007_t = false;
+        this.isDragging = false;
     }
 
     /**
-     * Returns if the passed mouse position is over the specified slot.
+     * 返回鼠标位置是否在指定槽位上。
+     * @param slotIn 槽位
+     * @param mouseX 鼠标X坐标
+     * @param mouseY 鼠标Y坐标
+     * @return 是否在槽位上
      */
     private boolean isMouseOverSlot(Slot slotIn, int mouseX, int mouseY)
     {
-        return this.func_146978_c(slotIn.xDisplayPosition, slotIn.yDisplayPosition, 16, 16, mouseX, mouseY);
+        return this.isInRegion(slotIn.xDisplayPosition, slotIn.yDisplayPosition, 16, 16, mouseX, mouseY);
     }
 
-    protected boolean func_146978_c(int left, int top, int right, int bottom, int pointX, int pointY)
+    /**
+     * 检查点是否在矩形区域内。
+     * @param left 左边界
+     * @param top 上边界
+     * @param right 右边界
+     * @param bottom 下边界
+     * @param pointX 点的X坐标
+     * @param pointY 点的Y坐标
+     * @return 是否在区域内
+     */
+    protected boolean isInRegion(int left, int top, int right, int bottom, int pointX, int pointY)
     {
         int k1 = this.guiLeft;
         int l1 = this.guiTop;
@@ -666,6 +719,13 @@ public abstract class GuiContainer extends GuiScreen
         return pointX >= left - 1 && pointX < left + right + 1 && pointY >= top - 1 && pointY < top + bottom + 1;
     }
 
+    /**
+     * 处理鼠标点击槽位。
+     * @param slotIn 槽位
+     * @param slotId 槽位ID
+     * @param clickedButton 点击的按钮
+     * @param clickType 点击类型
+     */
     protected void handleMouseClick(Slot slotIn, int slotId, int clickedButton, int clickType)
     {
         if (slotIn != null)
@@ -677,7 +737,9 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * 当按键被键入时调用。相当于KeyListener.keyTyped(KeyEvent e)。
+     * @param typedChar 键入的字符
+     * @param keyCode 键码
      */
     protected void keyTyped(char typedChar, int keyCode)
     {
@@ -702,7 +764,9 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * This function is what controls the hotbar shortcut check when you press a number key when hovering a stack.
+     * 检查热键是否被按下。
+     * @param keyCode 键码
+     * @return 是否按下热键
      */
     protected boolean checkHotbarKeys(int keyCode)
     {
@@ -722,7 +786,7 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Called when the screen is unloaded. Used to disable keyboard repeat events
+     * 当GUI关闭时调用。用于禁用键盘重复事件。
      */
     public void onGuiClosed()
     {
@@ -733,7 +797,8 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Returns true if this GUI should pause the game when it is displayed in single-player
+     * 返回此GUI在单机模式下显示时是否暂停游戏。
+     * @return 是否暂停游戏
      */
     public boolean doesGuiPauseGame()
     {
@@ -741,7 +806,7 @@ public abstract class GuiContainer extends GuiScreen
     }
 
     /**
-     * Called from the main game loop to update the screen.
+     * 从主游戏循环调用以更新屏幕。
      */
     public void updateScreen()
     {

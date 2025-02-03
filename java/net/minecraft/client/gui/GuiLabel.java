@@ -26,7 +26,7 @@ public class GuiLabel extends Gui
     private int field_146163_s;
     private static final String __OBFID = "CL_00000671";
 
-    public void func_146159_a(Minecraft mc, int mouseX, int mouseY)
+    public void drawLabel(Minecraft mc, int mouseX, int mouseY)
     {
         if (this.field_146172_j)
         {

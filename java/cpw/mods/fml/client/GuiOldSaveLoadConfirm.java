@@ -53,7 +53,7 @@ public class GuiOldSaveLoadConfirm extends GuiYesNo implements GuiYesNoCallback 
 
         for (k = 0; k < this.labelList.size(); ++k)
         {
-            ((GuiLabel)this.labelList.get(k)).func_146159_a(this.mc, mouseX, mouseY);
+            ((GuiLabel)this.labelList.get(k)).drawLabel(this.mc, mouseX, mouseY);
         }
     }
     @Override

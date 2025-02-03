@@ -26,33 +26,44 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+/**
+ * GuiScreen 是 Minecraft 中所有 GUI 屏幕的基类。
+ * 它提供了绘制屏幕、处理输入、管理按钮和标签等基本功能。
+ */
 @SideOnly(Side.CLIENT)
 public class GuiScreen extends Gui
 {
-    /** Holds a instance of RenderItem, used to draw the achievement icons on screen (is based on ItemStack) */
+    /** 用于在屏幕上绘制成就图标的 RenderItem 实例（基于 ItemStack）。 */
     protected static RenderItem itemRender = new RenderItem();
-    /** Reference to the Minecraft object. */
+    /** Minecraft 实例的引用。 */
     public Minecraft mc;
-    /** The width of the screen object. */
+    /** 屏幕的宽度。 */
     public int width;
-    /** The height of the screen object. */
+    /** 屏幕的高度。 */
     public int height;
-    /** A list of all the buttons in this container. */
+    /** 此容器中所有按钮的列表。 */
     protected List<net.minecraft.client.gui.GuiButton> buttonList = new ArrayList();
-    /** A list of all the labels in this container. */
+    /** 此容器中所有标签的列表。 */
     protected List<net.minecraft.client.gui.GuiLabel> labelList = new ArrayList();
+    /** 是否允许用户输入。 */
     public boolean allowUserInput;
-    /** The FontRenderer used by GuiScreen */
+    /** GuiScreen 使用的字体渲染器。 */
     protected FontRenderer fontRendererObj;
-    /** The button that was just pressed. */
+    /** 刚刚按下的按钮。 */
     private GuiButton selectedButton;
+    /** 鼠标事件的按钮。 */
     private int eventButton;
+    /** 上次鼠标事件的时间。 */
     private long lastMouseEvent;
-    private int field_146298_h;
+    /** 用于触摸屏的计数器。 */
+    private int touchScreenCounter;
     private static final String __OBFID = "CL_00000710";
 
     /**
-     * Draws the screen and all the components in it.
+     * 绘制屏幕及其所有组件。
+     * @param mouseX 鼠标的 X 坐标
+     * @param mouseY 鼠标的 Y 坐标
+     * @param partialTicks 部分刻数，用于平滑动画
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
@@ -65,16 +76,18 @@ public class GuiScreen extends Gui
 
         for (k = 0; k < this.labelList.size(); ++k)
         {
-            ((GuiLabel)this.labelList.get(k)).func_146159_a(this.mc, mouseX, mouseY);
+            ((GuiLabel)this.labelList.get(k)).drawLabel(this.mc, mouseX, mouseY);
         }
     }
 
     /**
-     * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * 当按键被键入时触发。相当于 KeyListener.keyTyped(KeyEvent e)。
+     * @param typedChar 键入的字符
+     * @param keyCode 按键的代码
      */
     protected void keyTyped(char typedChar, int keyCode)
     {
-        if (keyCode == 1)
+        if (keyCode == 1) // ESC 键
         {
             this.mc.displayGuiScreen((GuiScreen)null);
             this.mc.setIngameFocus();
@@ -82,7 +95,8 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Returns a string stored in the system clipboard.
+     * 从系统剪贴板获取字符串。
+     * @return 剪贴板中的字符串，如果获取失败则返回空字符串
      */
     public static String getClipboardString()
     {
@@ -104,7 +118,8 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Stores the given string in the system clipboard
+     * 将给定字符串存储到系统剪贴板。
+     * @param copyText 要存储到剪贴板的字符串
      */
     public static void setClipboardString(String copyText)
     {
@@ -119,6 +134,12 @@ public class GuiScreen extends Gui
         }
     }
 
+    /**
+     * 渲染物品的工具提示。
+     * @param itemIn 要渲染工具提示的物品
+     * @param x 工具提示的 X 坐标
+     * @param y 工具提示的 Y 坐标
+     */
     protected void renderToolTip(ItemStack itemIn, int x, int y)
     {
         List list = itemIn.getTooltip(this.mc.thePlayer, this.mc.gameSettings.advancedItemTooltips);
@@ -140,19 +161,34 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Draws the text when mouse is over creative inventory tab. Params: current creative tab to be checked, current
-     * mouse x position, current mouse y position.
+     * 当鼠标悬停在创造模式库存标签上时绘制文本。
+     * @param tabName 标签名称
+     * @param mouseX 鼠标的 X 坐标
+     * @param mouseY 鼠标的 Y 坐标
      */
     protected void drawCreativeTabHoveringText(String tabName, int mouseX, int mouseY)
     {
         this.func_146283_a(Arrays.asList(new String[] {tabName}), mouseX, mouseY);
     }
 
+    /**
+     * 绘制悬停文本。
+     * @param textLines 文本行列表
+     * @param x 文本的 X 坐标
+     * @param y 文本的 Y 坐标
+     */
     protected void func_146283_a(List<String> textLines, int x, int y)
     {
-        drawHoveringText(textLines, x, y, fontRendererObj);   
+        drawHoveringText(textLines, x, y, fontRendererObj);
     }
 
+    /**
+     * 绘制悬停文本。
+     * @param textLines 文本行列表
+     * @param x 文本的 X 坐标
+     * @param y 文本的 Y 坐标
+     * @param font 字体渲染器
+     */
     protected void drawHoveringText(List<String> textLines, int x, int y, FontRenderer font)
     {
         if (!textLines.isEmpty())
@@ -161,65 +197,65 @@ public class GuiScreen extends Gui
             RenderHelper.disableStandardItemLighting();
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
-            int k = 0;
+            int maxTextWidth = 0;
             Iterator iterator = textLines.iterator();
 
             while (iterator.hasNext())
             {
                 String s = (String)iterator.next();
-                int l = font.getStringWidth(s);
+                int textWidth = font.getStringWidth(s);
 
-                if (l > k)
+                if (textWidth > maxTextWidth)
                 {
-                    k = l;
+                    maxTextWidth = textWidth;
                 }
             }
 
-            int j2 = x + 12;
-            int k2 = y - 12;
-            int i1 = 8;
+            int textX = x + 12;
+            int textY = y - 12;
+            int textHeight = 8;
 
             if (textLines.size() > 1)
             {
-                i1 += 2 + (textLines.size() - 1) * 10;
+                textHeight += 2 + (textLines.size() - 1) * 10;
             }
 
-            if (j2 + k > this.width)
+            if (textX + maxTextWidth > this.width)
             {
-                j2 -= 28 + k;
+                textX -= 28 + maxTextWidth;
             }
 
-            if (k2 + i1 + 6 > this.height)
+            if (textY + textHeight + 6 > this.height)
             {
-                k2 = this.height - i1 - 6;
+                textY = this.height - textHeight - 6;
             }
 
             this.zLevel = 300.0F;
             itemRender.zLevel = 300.0F;
-            int j1 = -267386864;
-            this.drawGradientRect(j2 - 3, k2 - 4, j2 + k + 3, k2 - 3, j1, j1);
-            this.drawGradientRect(j2 - 3, k2 + i1 + 3, j2 + k + 3, k2 + i1 + 4, j1, j1);
-            this.drawGradientRect(j2 - 3, k2 - 3, j2 + k + 3, k2 + i1 + 3, j1, j1);
-            this.drawGradientRect(j2 - 4, k2 - 3, j2 - 3, k2 + i1 + 3, j1, j1);
-            this.drawGradientRect(j2 + k + 3, k2 - 3, j2 + k + 4, k2 + i1 + 3, j1, j1);
-            int k1 = 1347420415;
-            int l1 = (k1 & 16711422) >> 1 | k1 & -16777216;
-            this.drawGradientRect(j2 - 3, k2 - 3 + 1, j2 - 3 + 1, k2 + i1 + 3 - 1, k1, l1);
-            this.drawGradientRect(j2 + k + 2, k2 - 3 + 1, j2 + k + 3, k2 + i1 + 3 - 1, k1, l1);
-            this.drawGradientRect(j2 - 3, k2 - 3, j2 + k + 3, k2 - 3 + 1, k1, k1);
-            this.drawGradientRect(j2 - 3, k2 + i1 + 2, j2 + k + 3, k2 + i1 + 3, l1, l1);
+            int backgroundColor = -267386864;
+            this.drawGradientRect(textX - 3, textY - 4, textX + maxTextWidth + 3, textY - 3, backgroundColor, backgroundColor);
+            this.drawGradientRect(textX - 3, textY + textHeight + 3, textX + maxTextWidth + 3, textY + textHeight + 4, backgroundColor, backgroundColor);
+            this.drawGradientRect(textX - 3, textY - 3, textX + maxTextWidth + 3, textY + textHeight + 3, backgroundColor, backgroundColor);
+            this.drawGradientRect(textX - 4, textY - 3, textX - 3, textY + textHeight + 3, backgroundColor, backgroundColor);
+            this.drawGradientRect(textX + maxTextWidth + 3, textY - 3, textX + maxTextWidth + 4, textY + textHeight + 3, backgroundColor, backgroundColor);
+            int borderColor = 1347420415;
+            int borderColor2 = (borderColor & 16711422) >> 1 | borderColor & -16777216;
+            this.drawGradientRect(textX - 3, textY - 3 + 1, textX - 3 + 1, textY + textHeight + 3 - 1, borderColor, borderColor2);
+            this.drawGradientRect(textX + maxTextWidth + 2, textY - 3 + 1, textX + maxTextWidth + 3, textY + textHeight + 3 - 1, borderColor, borderColor2);
+            this.drawGradientRect(textX - 3, textY - 3, textX + maxTextWidth + 3, textY - 3 + 1, borderColor, borderColor);
+            this.drawGradientRect(textX - 3, textY + textHeight + 2, textX + maxTextWidth + 3, textY + textHeight + 3, borderColor2, borderColor2);
 
-            for (int i2 = 0; i2 < textLines.size(); ++i2)
+            for (int i = 0; i < textLines.size(); ++i)
             {
-                String s1 = (String)textLines.get(i2);
-                font.drawStringWithShadow(s1, j2, k2, -1);
+                String s1 = (String)textLines.get(i);
+                font.drawStringWithShadow(s1, textX, textY, -1);
 
-                if (i2 == 0)
+                if (i == 0)
                 {
-                    k2 += 2;
+                    textY += 2;
                 }
 
-                k2 += 10;
+                textY += 10;
             }
 
             this.zLevel = 0.0F;
@@ -232,11 +268,14 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Called when the mouse is clicked.
+     * 当鼠标被点击时调用。
+     * @param mouseX 鼠标的 X 坐标
+     * @param mouseY 鼠标的 Y 坐标
+     * @param mouseButton 鼠标按钮
      */
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
     {
-        if (mouseButton == 0)
+        if (mouseButton == 0) // 左键
         {
             for (int l = 0; l < this.buttonList.size(); ++l)
             {
@@ -258,8 +297,10 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Called when the mouse is moved or a mouse button is released.  Signature: (mouseX, mouseY, which) which==-1 is
-     * mouseMove, which==0 or which==1 is mouseUp
+     * 当鼠标移动或鼠标按钮释放时调用。
+     * @param mouseX 鼠标的 X 坐标
+     * @param mouseY 鼠标的 Y 坐标
+     * @param state 鼠标状态，-1 表示鼠标移动，0 或 1 表示鼠标释放
      */
     protected void mouseMovedOrUp(int mouseX, int mouseY, int state)
     {
@@ -271,16 +312,25 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Called when a mouse button is pressed and the mouse is moved around. Parameters are : mouseX, mouseY,
-     * lastButtonClicked & timeSinceMouseClick.
+     * 当鼠标按钮被按下并移动时调用。
+     * @param mouseX 鼠标的 X 坐标
+     * @param mouseY 鼠标的 Y 坐标
+     * @param clickedMouseButton 被点击的鼠标按钮
+     * @param timeSinceLastClick 自上次点击以来的时间
      */
     protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {}
 
+    /**
+     * 当按钮被点击时调用。
+     * @param button 被点击的按钮
+     */
     protected void actionPerformed(GuiButton button) {}
 
     /**
-     * Causes the screen to lay out its subcomponents again. This is the equivalent of the Java call
-     * Container.validate()
+     * 设置屏幕的世界和分辨率。
+     * @param mc Minecraft 实例
+     * @param width 屏幕宽度
+     * @param height 屏幕高度
      */
     public void setWorldAndResolution(Minecraft mc, int width, int height)
     {
@@ -297,12 +347,12 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Adds the buttons (and other controls) to the screen in question.
+     * 初始化 GUI，添加按钮和其他控件。
      */
     public void initGui() {}
 
     /**
-     * Delegates mouse and keyboard input.
+     * 处理鼠标和键盘输入。
      */
     public void handleInput()
     {
@@ -324,44 +374,44 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Handles mouse input.
+     * 处理鼠标输入。
      */
     public void handleMouseInput()
     {
-        int i = Mouse.getEventX() * this.width / this.mc.displayWidth;
-        int j = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
-        int k = Mouse.getEventButton();
+        int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
+        int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+        int mouseButton = Mouse.getEventButton();
 
         if (Mouse.getEventButtonState())
         {
-            if (this.mc.gameSettings.touchscreen && this.field_146298_h++ > 0)
+            if (this.mc.gameSettings.touchscreen && this.touchScreenCounter++ > 0)
             {
                 return;
             }
 
-            this.eventButton = k;
+            this.eventButton = mouseButton;
             this.lastMouseEvent = Minecraft.getSystemTime();
-            this.mouseClicked(i, j, this.eventButton);
+            this.mouseClicked(mouseX, mouseY, this.eventButton);
         }
-        else if (k != -1)
+        else if (mouseButton != -1)
         {
-            if (this.mc.gameSettings.touchscreen && --this.field_146298_h > 0)
+            if (this.mc.gameSettings.touchscreen && --this.touchScreenCounter > 0)
             {
                 return;
             }
 
             this.eventButton = -1;
-            this.mouseMovedOrUp(i, j, k);
+            this.mouseMovedOrUp(mouseX, mouseY, mouseButton);
         }
         else if (this.eventButton != -1 && this.lastMouseEvent > 0L)
         {
-            long l = Minecraft.getSystemTime() - this.lastMouseEvent;
-            this.mouseClickMove(i, j, this.eventButton, l);
+            long timeSinceLastClick = Minecraft.getSystemTime() - this.lastMouseEvent;
+            this.mouseClickMove(mouseX, mouseY, this.eventButton, timeSinceLastClick);
         }
     }
 
     /**
-     * Handles keyboard input.
+     * 处理键盘输入。
      */
     public void handleKeyboardInput()
     {
@@ -374,23 +424,27 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Called from the main game loop to update the screen.
+     * 从主游戏循环调用以更新屏幕。
      */
     public void updateScreen() {}
 
     /**
-     * Called when the screen is unloaded. Used to disable keyboard repeat events
+     * 当屏幕卸载时调用。用于禁用键盘重复事件。
      */
     public void onGuiClosed() {}
 
     /**
-     * Draws either a gradient over the background screen (when it exists) or a flat gradient over background.png
+     * 绘制背景渐变（当背景存在时）或在 background.png 上绘制平面渐变。
      */
     public void drawDefaultBackground()
     {
         this.drawWorldBackground(0);
     }
 
+    /**
+     * 绘制世界背景。
+     * @param tint 背景色调
+     */
     public void drawWorldBackground(int tint)
     {
         if (this.mc.theWorld != null)
@@ -404,7 +458,8 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Draws the background (i is always 0 as of 1.2.2)
+     * 绘制背景。
+     * @param tint 背景色调
      */
     public void drawBackground(int tint)
     {
@@ -424,17 +479,24 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Returns true if this GUI should pause the game when it is displayed in single-player
+     * 返回此 GUI 是否应在单玩家模式下暂停游戏。
+     * @return 如果应暂停游戏则返回 true，否则返回 false
      */
     public boolean doesGuiPauseGame()
     {
         return true;
     }
 
+    /**
+     * 当确认对话框被点击时调用。
+     * @param result 确认结果
+     * @param id 确认 ID
+     */
     public void confirmClicked(boolean result, int id) {}
 
     /**
-     * Returns true if either windows ctrl key is down or if either mac meta key is down
+     * 返回是否按下了 Ctrl 键（Windows 或 Mac）。
+     * @return 如果按下了 Ctrl 键则返回 true，否则返回 false
      */
     public static boolean isCtrlKeyDown()
     {
@@ -442,7 +504,8 @@ public class GuiScreen extends Gui
     }
 
     /**
-     * Returns true if either shift key is down
+     * 返回是否按下了 Shift 键。
+     * @return 如果按下了 Shift 键则返回 true，否则返回 false
      */
     public static boolean isShiftKeyDown()
     {

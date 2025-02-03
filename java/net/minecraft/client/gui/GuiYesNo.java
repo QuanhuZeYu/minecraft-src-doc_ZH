@@ -16,7 +16,7 @@ public class GuiYesNo extends GuiScreen
     protected String confirmButtonText;
     /** The text shown for the second button in GuiYesNo */
     protected String cancelButtonText;
-    protected int field_146357_i;
+    protected int parentButtonId;
     private int field_146353_s;
     private static final String __OBFID = "CL_00000684";
 
@@ -25,7 +25,7 @@ public class GuiYesNo extends GuiScreen
         this.parentScreen = p_i1082_1_;
         this.field_146351_f = p_i1082_2_;
         this.field_146354_r = p_i1082_3_;
-        this.field_146357_i = p_i1082_4_;
+        this.parentButtonId = p_i1082_4_;
         this.confirmButtonText = I18n.format("gui.yes", new Object[0]);
         this.cancelButtonText = I18n.format("gui.no", new Object[0]);
     }
@@ -37,7 +37,7 @@ public class GuiYesNo extends GuiScreen
         this.field_146354_r = p_i1083_3_;
         this.confirmButtonText = p_i1083_4_;
         this.cancelButtonText = p_i1083_5_;
-        this.field_146357_i = p_i1083_6_;
+        this.parentButtonId = p_i1083_6_;
     }
 
     /**
@@ -51,7 +51,7 @@ public class GuiYesNo extends GuiScreen
 
     protected void actionPerformed(GuiButton button)
     {
-        this.parentScreen.confirmClicked(button.id == 0, this.field_146357_i);
+        this.parentScreen.confirmClicked(button.id == 0, this.parentButtonId);
     }
 
     /**
