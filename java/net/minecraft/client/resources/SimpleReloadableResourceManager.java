@@ -20,8 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @SideOnly(Side.CLIENT)
-public class SimpleReloadableResourceManager implements IReloadableResourceManager
-{
+public class SimpleReloadableResourceManager implements IReloadableResourceManager {
     private static final Logger logger = LogManager.getLogger();
     private static final Joiner joinerResourcePacks = Joiner.on(", ");
     private final Map domainResourceManagers = Maps.newHashMap();
@@ -30,89 +29,78 @@ public class SimpleReloadableResourceManager implements IReloadableResourceManag
     private final IMetadataSerializer rmMetadataSerializer;
     private static final String __OBFID = "CL_00001091";
 
-    public SimpleReloadableResourceManager(IMetadataSerializer p_i1299_1_)
-    {
+    public SimpleReloadableResourceManager(IMetadataSerializer p_i1299_1_) {
         this.rmMetadataSerializer = p_i1299_1_;
     }
 
-    public void reloadResourcePack(IResourcePack p_110545_1_)
-    {
+    public void reloadResourcePack(IResourcePack p_110545_1_) {
         FallbackResourceManager fallbackresourcemanager;
 
-        for (Iterator iterator = p_110545_1_.getResourceDomains().iterator(); iterator.hasNext(); fallbackresourcemanager.addResourcePack(p_110545_1_))
-        {
-            String s = (String)iterator.next();
+        for (Iterator iterator = p_110545_1_.getResourceDomains().iterator(); iterator
+                .hasNext(); fallbackresourcemanager.addResourcePack(p_110545_1_)) {
+            String s = (String) iterator.next();
             this.setResourceDomains.add(s);
-            fallbackresourcemanager = (FallbackResourceManager)this.domainResourceManagers.get(s);
+            fallbackresourcemanager = (FallbackResourceManager) this.domainResourceManagers.get(s);
 
-            if (fallbackresourcemanager == null)
-            {
+            if (fallbackresourcemanager == null) {
                 fallbackresourcemanager = new FallbackResourceManager(this.rmMetadataSerializer);
                 this.domainResourceManagers.put(s, fallbackresourcemanager);
             }
         }
     }
 
-    public Set<String> getResourceDomains()
-    {
+    public Set<String> getResourceDomains() {
         return this.setResourceDomains;
     }
 
-    public IResource getResource(ResourceLocation p_110536_1_) throws IOException
-    {
-        IResourceManager iresourcemanager = (IResourceManager)this.domainResourceManagers.get(p_110536_1_.getResourceDomain());
+    public IResource getResource(ResourceLocation resl) throws IOException {
+        IResourceManager iresourcemanager = (IResourceManager) this.domainResourceManagers
+                .get(resl.getResourceDomain());
 
-        if (iresourcemanager != null)
-        {
-            return iresourcemanager.getResource(p_110536_1_);
-        }
-        else
-        {
-            throw new FileNotFoundException(p_110536_1_.toString());
+        if (iresourcemanager != null) {
+            return iresourcemanager.getResource(resl);
+        } else {
+            throw new FileNotFoundException(resl.toString());
         }
     }
 
-    public List<net.minecraft.client.resources.IResource> getAllResources(ResourceLocation p_135056_1_) throws IOException
-    {
-        IResourceManager iresourcemanager = (IResourceManager)this.domainResourceManagers.get(p_135056_1_.getResourceDomain());
+    public List<net.minecraft.client.resources.IResource> getAllResources(ResourceLocation p_135056_1_)
+            throws IOException {
+        IResourceManager iresourcemanager = (IResourceManager) this.domainResourceManagers
+                .get(p_135056_1_.getResourceDomain());
 
-        if (iresourcemanager != null)
-        {
+        if (iresourcemanager != null) {
             return iresourcemanager.getAllResources(p_135056_1_);
-        }
-        else
-        {
+        } else {
             throw new FileNotFoundException(p_135056_1_.toString());
         }
     }
 
-    private void clearResources()
-    {
+    private void clearResources() {
         this.domainResourceManagers.clear();
         this.setResourceDomains.clear();
     }
 
-    public void reloadResources(List<net.minecraft.client.resources.IResourcePack> p_110541_1_)
-    {
+    public void reloadResources(List<net.minecraft.client.resources.IResourcePack> p_110541_1_) {
         this.clearResources();
-        cpw.mods.fml.common.ProgressManager.ProgressBar resReload = cpw.mods.fml.common.ProgressManager.push("Loading Resources", p_110541_1_.size()+1, true);
-        logger.info("Reloading ResourceManager: " + joinerResourcePacks.join(Iterables.transform(p_110541_1_, new Function()
-        {
-            private static final String __OBFID = "CL_00001092";
-            public String apply(IResourcePack p_apply_1_)
-            {
-                return p_apply_1_.getPackName();
-            }
-            public Object apply(Object p_apply_1_)
-            {
-                return this.apply((IResourcePack)p_apply_1_);
-            }
-        })));
+        cpw.mods.fml.common.ProgressManager.ProgressBar resReload = cpw.mods.fml.common.ProgressManager
+                .push("Loading Resources", p_110541_1_.size() + 1, true);
+        logger.info("Reloading ResourceManager: "
+                + joinerResourcePacks.join(Iterables.transform(p_110541_1_, new Function() {
+                    private static final String __OBFID = "CL_00001092";
+
+                    public String apply(IResourcePack p_apply_1_) {
+                        return p_apply_1_.getPackName();
+                    }
+
+                    public Object apply(Object p_apply_1_) {
+                        return this.apply((IResourcePack) p_apply_1_);
+                    }
+                })));
         Iterator iterator = p_110541_1_.iterator();
 
-        while (iterator.hasNext())
-        {
-            IResourcePack iresourcepack = (IResourcePack)iterator.next();
+        while (iterator.hasNext()) {
+            IResourcePack iresourcepack = (IResourcePack) iterator.next();
             resReload.step(iresourcepack.getPackName());
             this.reloadResourcePack(iresourcepack);
         }
@@ -122,23 +110,23 @@ public class SimpleReloadableResourceManager implements IReloadableResourceManag
         cpw.mods.fml.common.ProgressManager.pop(resReload);
     }
 
-    public void registerReloadListener(IResourceManagerReloadListener p_110542_1_)
-    {
+    public void registerReloadListener(IResourceManagerReloadListener p_110542_1_) {
         this.reloadListeners.add(p_110542_1_);
-        cpw.mods.fml.common.ProgressManager.ProgressBar resReload = cpw.mods.fml.common.ProgressManager.push("Loading Resource", 1);
+        cpw.mods.fml.common.ProgressManager.ProgressBar resReload = cpw.mods.fml.common.ProgressManager
+                .push("Loading Resource", 1);
         resReload.step(p_110542_1_.getClass());
         p_110542_1_.onResourceManagerReload(this);
         cpw.mods.fml.common.ProgressManager.pop(resReload);
     }
 
-    private void notifyReloadListeners()
-    {
+    private void notifyReloadListeners() {
         Iterator iterator = this.reloadListeners.iterator();
 
-        cpw.mods.fml.common.ProgressManager.ProgressBar resReload = cpw.mods.fml.common.ProgressManager.push("Reloading", this.reloadListeners.size());
-        while (iterator.hasNext())
-        {
-            IResourceManagerReloadListener iresourcemanagerreloadlistener = (IResourceManagerReloadListener)iterator.next();
+        cpw.mods.fml.common.ProgressManager.ProgressBar resReload = cpw.mods.fml.common.ProgressManager
+                .push("Reloading", this.reloadListeners.size());
+        while (iterator.hasNext()) {
+            IResourceManagerReloadListener iresourcemanagerreloadlistener = (IResourceManagerReloadListener) iterator
+                    .next();
             resReload.step(iresourcemanagerreloadlistener.getClass());
             iresourcemanagerreloadlistener.onResourceManagerReload(this);
         }

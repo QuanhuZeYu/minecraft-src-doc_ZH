@@ -2,26 +2,21 @@ package net.minecraft.util;
 
 import org.apache.commons.lang3.Validate;
 
-public class ResourceLocation
-{
+public class ResourceLocation {
     private final String resourceDomain;
     private final String resourcePath;
     private static final String __OBFID = "CL_00001082";
 
-    public ResourceLocation(String p_i1292_1_, String p_i1292_2_)
-    {
-        Validate.notNull(p_i1292_2_);
+    public ResourceLocation(String domain, String path) {
+        Validate.notNull(path);
 
-        if (p_i1292_1_ != null && p_i1292_1_.length() != 0)
-        {
-            this.resourceDomain = p_i1292_1_;
-        }
-        else
-        {
+        if (domain != null && domain.length() != 0) {
+            this.resourceDomain = domain;
+        } else {
             this.resourceDomain = "minecraft";
         }
 
-        this.resourcePath = p_i1292_2_;
+        this.resourcePath = path;
     }
 
     /**
@@ -56,42 +51,31 @@ public class ResourceLocation
         this.resourcePath = path;
     }
 
-
-
-    public String getResourcePath()
-    {
+    public String getResourcePath() {
         return this.resourcePath;
     }
 
-    public String getResourceDomain()
-    {
+    public String getResourceDomain() {
         return this.resourceDomain;
     }
 
-    public String toString()
-    {
+    public String toString() {
         return this.resourceDomain + ":" + this.resourcePath;
     }
 
-    public boolean equals(Object p_equals_1_)
-    {
-        if (this == p_equals_1_)
-        {
+    public boolean equals(Object p_equals_1_) {
+        if (this == p_equals_1_) {
             return true;
-        }
-        else if (!(p_equals_1_ instanceof ResourceLocation))
-        {
+        } else if (!(p_equals_1_ instanceof ResourceLocation)) {
             return false;
-        }
-        else
-        {
-            ResourceLocation resourcelocation = (ResourceLocation)p_equals_1_;
-            return this.resourceDomain.equals(resourcelocation.resourceDomain) && this.resourcePath.equals(resourcelocation.resourcePath);
+        } else {
+            ResourceLocation resourcelocation = (ResourceLocation) p_equals_1_;
+            return this.resourceDomain.equals(resourcelocation.resourceDomain)
+                    && this.resourcePath.equals(resourcelocation.resourcePath);
         }
     }
 
-    public int hashCode()
-    {
+    public int hashCode() {
         return 31 * this.resourceDomain.hashCode() + this.resourcePath.hashCode();
     }
 }

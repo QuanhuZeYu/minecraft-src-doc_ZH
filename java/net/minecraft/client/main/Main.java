@@ -24,139 +24,192 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Session;
 
 @SideOnly(Side.CLIENT)
-public class Main
-{
-    private static final java.lang.reflect.Type field_152370_a = new ParameterizedType()
-    {
+public class Main {
+    // 定义一个静态常量，表示复杂泛型类型 Map<String, Collection<String>>
+    private static final java.lang.reflect.Type field_152370_a = new ParameterizedType() {
+
+        // 反编译混淆标识符（通常可以忽略）
         private static final String __OBFID = "CL_00000828";
-        public java.lang.reflect.Type[] getActualTypeArguments()
-        {
-            return new java.lang.reflect.Type[] {String.class, new ParameterizedType()
-            {
-                private static final String __OBFID = "CL_00001836";
-                public java.lang.reflect.Type[] getActualTypeArguments()
-                {
-                    return new java.lang.reflect.Type[] {String.class};
-                }
-                public java.lang.reflect.Type getRawType()
-                {
-                    return Collection.class;
-                }
-                public java.lang.reflect.Type getOwnerType()
-                {
-                    return null;
-                }
-            }
-                                                };
+
+        @Override
+        public java.lang.reflect.Type[] getActualTypeArguments() {
+            // 返回当前泛型的具体类型参数：第一个是String，第二个是嵌套的ParameterizedType
+            return new java.lang.reflect.Type[] {
+                    String.class,
+                    new ParameterizedType() { // 表示 Collection<String>
+                        private static final String __OBFID = "CL_00001836";
+
+                        @Override
+                        public java.lang.reflect.Type[] getActualTypeArguments() {
+                            // Collection的类型参数是 String
+                            return new java.lang.reflect.Type[] { String.class };
+                        }
+
+                        @Override
+                        public java.lang.reflect.Type getRawType() {
+                            // 原始类型是 Collection 接口
+                            return Collection.class;
+                        }
+
+                        @Override
+                        public java.lang.reflect.Type getOwnerType() {
+                            // 不属于任何外围类（顶层类型）
+                            return null;
+                        }
+                    }
+            };
         }
-        public java.lang.reflect.Type getRawType()
-        {
+
+        @Override
+        public java.lang.reflect.Type getRawType() {
+            // 当前泛型的原始类型是 Map 接口
             return Map.class;
         }
-        public java.lang.reflect.Type getOwnerType()
-        {
+
+        @Override
+        public java.lang.reflect.Type getOwnerType() {
+            // 不属于任何外围类（顶层类型）
             return null;
         }
     };
     private static final String __OBFID = "CL_00001461";
 
-    public static void main(String[] p_main_0_)
-    {
+    public static void main(String[] p_main_0_) {
+        // 设置系统属性优先使用IPv4协议栈
         System.setProperty("java.net.preferIPv4Stack", "true");
+
+        // 创建命令行参数解析器
         OptionParser optionparser = new OptionParser();
-        optionparser.allowsUnrecognizedOptions();
+        optionparser.allowsUnrecognizedOptions(); // 允许未知参数存在
         optionparser.accepts("demo");
         optionparser.accepts("fullscreen");
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec = optionparser.accepts("server").withRequiredArg();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec1 = optionparser.accepts("port").withRequiredArg().ofType(Integer.class).defaultsTo(Integer.valueOf(25565), new Integer[0]);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec2 = optionparser.accepts("gameDir").withRequiredArg().ofType(File.class).defaultsTo(new File("."), new File[0]);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec3 = optionparser.accepts("assetsDir").withRequiredArg().ofType(File.class);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec4 = optionparser.accepts("resourcePackDir").withRequiredArg().ofType(File.class);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec5 = optionparser.accepts("proxyHost").withRequiredArg();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec6 = optionparser.accepts("proxyPort").withRequiredArg().defaultsTo("8080", new String[0]).ofType(Integer.class);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec7 = optionparser.accepts("proxyUser").withRequiredArg();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec8 = optionparser.accepts("proxyPass").withRequiredArg();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec9 = optionparser.accepts("username").withRequiredArg().defaultsTo("Player" + Minecraft.getSystemTime() % 1000L, new String[0]);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec10 = optionparser.accepts("uuid").withRequiredArg();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec11 = optionparser.accepts("accessToken").withRequiredArg().required();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec12 = optionparser.accepts("version").withRequiredArg().required();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec13 = optionparser.accepts("width").withRequiredArg().ofType(Integer.class).defaultsTo(Integer.valueOf(854), new Integer[0]);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec14 = optionparser.accepts("height").withRequiredArg().ofType(Integer.class).defaultsTo(Integer.valueOf(480), new Integer[0]);
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec15 = optionparser.accepts("userProperties").withRequiredArg().required();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec16 = optionparser.accepts("assetIndex").withRequiredArg();
-        ArgumentAcceptingOptionSpec argumentacceptingoptionspec17 = optionparser.accepts("userType").withRequiredArg().defaultsTo("legacy", new String[0]);
+        // 允许的参数：server、port、gameDir、assetsDir、resourcePackDir、proxyHost、proxyPort、proxyUser、proxyPass、username、uuid、accessToken、version、width、height、userProperties、assetIndex、userType
+        // 其中，server、port、gameDir、assetsDir、proxyHost、proxyPort、proxyUser、proxyPass、username、uuid、version、width、height、userType是必须的参数
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecServer = optionparser.accepts("server")
+                .withRequiredArg();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecPort = optionparser.accepts("port").withRequiredArg()
+                .ofType(Integer.class).defaultsTo(Integer.valueOf(25565), new Integer[0]);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecGameDir = optionparser.accepts("gameDir")
+                .withRequiredArg()
+                .ofType(File.class).defaultsTo(new File("."), new File[0]);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecAssetsDir = optionparser.accepts("assetsDir")
+                .withRequiredArg()
+                .ofType(File.class);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecResourcePackDir = optionparser.accepts("resourcePackDir")
+                .withRequiredArg().ofType(File.class);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecProxyHost = optionparser.accepts("proxyHost")
+                .withRequiredArg();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecProxyprot = optionparser.accepts("proxyPort")
+                .withRequiredArg()
+                .defaultsTo("8080", new String[0]).ofType(Integer.class);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecProxyUser = optionparser.accepts("proxyUser")
+                .withRequiredArg();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecProxyPass = optionparser.accepts("proxyPass")
+                .withRequiredArg();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecUserName = optionparser.accepts("username")
+                .withRequiredArg()
+                .defaultsTo("Player" + Minecraft.getSystemTime() % 1000L, new String[0]);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecUUID = optionparser.accepts("uuid").withRequiredArg();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecAccessToken = optionparser.accepts("accessToken")
+                .withRequiredArg().required();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecVersion = optionparser.accepts("version")
+                .withRequiredArg()
+                .required();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecWidth = optionparser.accepts("width").withRequiredArg()
+                .ofType(Integer.class).defaultsTo(Integer.valueOf(854), new Integer[0]);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecHeight = optionparser.accepts("height").withRequiredArg()
+                .ofType(Integer.class).defaultsTo(Integer.valueOf(480), new Integer[0]);
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecUserProperties = optionparser.accepts("userProperties")
+                .withRequiredArg().required();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecAssetIndex = optionparser.accepts("assetIndex")
+                .withRequiredArg();
+        ArgumentAcceptingOptionSpec argumentacceptingoptionspecUserType = optionparser.accepts("userType")
+                .withRequiredArg()
+                .defaultsTo("legacy", new String[0]);
         NonOptionArgumentSpec nonoptionargumentspec = optionparser.nonOptions();
         OptionSet optionset = optionparser.parse(p_main_0_);
         List list = optionset.valuesOf(nonoptionargumentspec);
-        String s = (String)optionset.valueOf(argumentacceptingoptionspec5);
+        String proxyHost = (String) optionset.valueOf(argumentacceptingoptionspecProxyHost);
         Proxy proxy = Proxy.NO_PROXY;
 
-        if (s != null)
-        {
-            try
-            {
-                proxy = new Proxy(Type.SOCKS, new InetSocketAddress(s, ((Integer)optionset.valueOf(argumentacceptingoptionspec6)).intValue()));
-            }
-            catch (Exception exception)
-            {
+        if (proxyHost != null) {
+            try {
+                proxy = new Proxy(Type.SOCKS, new InetSocketAddress(proxyHost,
+                        ((Integer) optionset.valueOf(argumentacceptingoptionspecProxyprot)).intValue()));
+            } catch (Exception exception) {
                 ;
             }
         }
 
-        final String s1 = (String)optionset.valueOf(argumentacceptingoptionspec7);
-        final String s2 = (String)optionset.valueOf(argumentacceptingoptionspec8);
+        final String proxyUser = (String) optionset.valueOf(argumentacceptingoptionspecProxyUser);
+        final String proxyPass = (String) optionset.valueOf(argumentacceptingoptionspecProxyPass);
 
-        if (!proxy.equals(Proxy.NO_PROXY) && func_110121_a(s1) && func_110121_a(s2))
-        {
-            Authenticator.setDefault(new Authenticator()
-            {
+        if (!proxy.equals(Proxy.NO_PROXY) && func_110121_a(proxyUser) && func_110121_a(proxyPass)) {
+            Authenticator.setDefault(new Authenticator() {
                 private static final String __OBFID = "CL_00000829";
-                protected PasswordAuthentication getPasswordAuthentication()
-                {
-                    return new PasswordAuthentication(s1, s2.toCharArray());
+
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
                 }
             });
         }
 
-        int i = ((Integer)optionset.valueOf(argumentacceptingoptionspec13)).intValue();
-        int j = ((Integer)optionset.valueOf(argumentacceptingoptionspec14)).intValue();
-        boolean flag = optionset.has("fullscreen");
-        boolean flag1 = optionset.has("demo");
-        String s3 = (String)optionset.valueOf(argumentacceptingoptionspec12);
-        HashMultimap hashmultimap = HashMultimap.create();
-        Iterator iterator = ((Map)(new Gson()).fromJson((String)optionset.valueOf(argumentacceptingoptionspec15), field_152370_a)).entrySet().iterator();
+        int width = ((Integer) optionset.valueOf(argumentacceptingoptionspecWidth)).intValue();
+        int height = ((Integer) optionset.valueOf(argumentacceptingoptionspecHeight)).intValue();
+        boolean isFullscreen = optionset.has("fullscreen");
+        boolean isDemo = optionset.has("demo");
+        String version = (String) optionset.valueOf(argumentacceptingoptionspecVersion);
+        HashMultimap userPropertiesMap = HashMultimap.create();
+        Iterator iteratorUserProperties = ((Map) (new Gson()).fromJson(
+                (String) optionset.valueOf(argumentacceptingoptionspecUserProperties),
+                field_152370_a)).entrySet().iterator();
 
-        while (iterator.hasNext())
-        {
-            Entry entry = (Entry)iterator.next();
-            hashmultimap.putAll(entry.getKey(), (Iterable)entry.getValue());
+        while (iteratorUserProperties.hasNext()) {
+            Entry entry = (Entry) iteratorUserProperties.next();
+            userPropertiesMap.putAll(entry.getKey(), (Iterable) entry.getValue());
         }
 
-        File file2 = (File)optionset.valueOf(argumentacceptingoptionspec2);
-        File file3 = optionset.has(argumentacceptingoptionspec3) ? (File)optionset.valueOf(argumentacceptingoptionspec3) : new File(file2, "assets/");
-        File file1 = optionset.has(argumentacceptingoptionspec4) ? (File)optionset.valueOf(argumentacceptingoptionspec4) : new File(file2, "resourcepacks/");
-        String s4 = optionset.has(argumentacceptingoptionspec10) ? (String)argumentacceptingoptionspec10.value(optionset) : (String)argumentacceptingoptionspec9.value(optionset);
-        String s5 = optionset.has(argumentacceptingoptionspec16) ? (String)argumentacceptingoptionspec16.value(optionset) : null;
-        Session session = new Session((String)argumentacceptingoptionspec9.value(optionset), s4, (String)argumentacceptingoptionspec11.value(optionset), (String)argumentacceptingoptionspec17.value(optionset));
-        Minecraft minecraft = new Minecraft(session, i, j, flag, flag1, file2, file3, file1, proxy, s3, hashmultimap, s5);
-        String s6 = (String)optionset.valueOf(argumentacceptingoptionspec);
+        File gameDir = (File) optionset.valueOf(argumentacceptingoptionspecGameDir);
+        File AssetsDir = optionset.has(argumentacceptingoptionspecAssetsDir)
+                ? (File) optionset.valueOf(argumentacceptingoptionspecAssetsDir)
+                : new File(gameDir, "assets/");
+        File resourcePackDir = optionset.has(argumentacceptingoptionspecResourcePackDir)
+                ? (File) optionset.valueOf(argumentacceptingoptionspecResourcePackDir)
+                : new File(gameDir, "resourcepacks/");
+        String UUID = optionset.has(argumentacceptingoptionspecUUID)
+                ? (String) argumentacceptingoptionspecUUID.value(optionset)
+                : (String) argumentacceptingoptionspecUserName.value(optionset);
+        String assetIndex = optionset.has(argumentacceptingoptionspecAssetIndex)
+                ? (String) argumentacceptingoptionspecAssetIndex.value(optionset)
+                : null;
+        Session session = new Session((String) argumentacceptingoptionspecUserName.value(optionset), UUID,
+                (String) argumentacceptingoptionspecAccessToken.value(optionset),
+                (String) argumentacceptingoptionspecUserType.value(optionset));
+        // 创建Minecraft实例
+        Minecraft minecraft = new Minecraft(session, width, height, isFullscreen, isDemo, gameDir, AssetsDir,
+                resourcePackDir,
+                proxy,
+                version,
+                userPropertiesMap,
+                assetIndex);
+        String server = (String) optionset.valueOf(argumentacceptingoptionspecServer);
 
-        if (s6 != null)
-        {
-            minecraft.setServer(s6, ((Integer)optionset.valueOf(argumentacceptingoptionspec1)).intValue());
+        if (server != null) {
+            minecraft.setServer(server, ((Integer) optionset.valueOf(argumentacceptingoptionspecPort)).intValue());
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread("Client Shutdown Thread")
-        {
-            private static final String __OBFID = "CL_00001835";
-            public void run()
-            {
+        // 添加JVM关闭钩子（优雅终止机制）
+        Runtime.getRuntime().addShutdownHook(new Thread("Client Shutdown Thread") {
+            private static final String __OBFID = "CL_00001835"; // 反编译混淆标识符
+
+            @Override
+            public void run() {
+                // 在JVM关闭时执行：停止集成服务器
                 Minecraft.stopIntegratedServer();
             }
         });
 
-        if (!list.isEmpty())
-        {
+        if (!list.isEmpty()) {
             System.out.println("Completely ignored arguments: " + list);
         }
 
@@ -164,8 +217,7 @@ public class Main
         minecraft.run();
     }
 
-    private static boolean func_110121_a(String p_110121_0_)
-    {
+    private static boolean func_110121_a(String p_110121_0_) {
         return p_110121_0_ != null && !p_110121_0_.isEmpty();
     }
 }
