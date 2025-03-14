@@ -187,8 +187,9 @@ public class Minecraft implements IPlayerUsage {
     private CrashReport crashReporter;
     public int displayWidth;
     public int displayHeight;
+    /**计时器*/
     private Timer timer = new Timer(20.0F);
-    /** Instance of PlayerUsageSnooper. */
+    /** 数据收集器实例 - 多线程自动上报. */
     private PlayerUsageSnooper usageSnooper = new PlayerUsageSnooper("client", this,
             MinecraftServer.getSystemTimeMillis());
     public WorldClient theWorld;
@@ -199,6 +200,7 @@ public class Minecraft implements IPlayerUsage {
      * 但会触发区块重建，因此不适合在渲染中途改变视点。
      */
     public EntityLivingBase renderViewEntity;
+    /**看向的实体捕捉?*/
     public Entity pointedEntity;
     public EffectRenderer effectRenderer;
     private final Session session;
@@ -206,7 +208,7 @@ public class Minecraft implements IPlayerUsage {
     /** The font renderer used for displaying and measuring text. */
     public FontRenderer fontRenderer;
     public FontRenderer standardGalacticFontRenderer;
-    /** The GuiScreen that's being displayed at the moment. */
+    /** 目前正在展示的guiscreen。 */
     public GuiScreen currentScreen;
     public LoadingScreenRenderer loadingScreen;
     public EntityRenderer entityRenderer;
@@ -1038,7 +1040,7 @@ public class Minecraft implements IPlayerUsage {
             }
         }
 
-        this.mcProfiler.endSection();
+        this.mcProfiler.endSection(); // root
 
         if (this.isFramerateLimitBelowMax()) {
             Display.sync(this.getLimitFramerate());

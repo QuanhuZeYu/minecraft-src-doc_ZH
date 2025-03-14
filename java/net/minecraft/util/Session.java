@@ -8,6 +8,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * 仅是存储了username和player ID token的数据类
+ */
 @SideOnly(Side.CLIENT)
 public class Session
 {

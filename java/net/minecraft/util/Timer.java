@@ -7,31 +7,41 @@ import net.minecraft.client.Minecraft;
 @SideOnly(Side.CLIENT)
 public class Timer
 {
-    /** The number of timer ticks per second of real time */
+    /** 每秒的计时器 tick 数，表示游戏运行的速率（例如，标准 Minecraft 游戏速率为 20 ticks/秒） */
     float ticksPerSecond;
-    /** The time reported by the high-resolution clock at the last call of updateTimer(), in seconds */
+
+    /** 上一次调用 updateTimer() 时，高精度时钟报告的时间（以秒为单位） */
     private double lastHRTime;
-    /** How many full ticks have turned over since the last call to updateTimer(), capped at 10. */
+
+    /** 自上一次调用 updateTimer() 以来，经过的完整 tick 数，最大值为 10，以防止卡顿 */
     public int elapsedTicks;
+
     /**
-     * How much time has elapsed since the last tick, in ticks, for use by display rendering routines (range: 0.0 -
-     * 1.0).  This field is frozen if the display is paused to eliminate jitter.
+     * 自上一次 tick 以来经过的时间（以 tick 为单位），用于显示渲染逻辑（范围：0.0 - 1.0）。
+     * 如果游戏暂停，此值会冻结以避免画面抖动。
      */
     public float renderPartialTicks;
+
     /**
-     * A multiplier to make the timer (and therefore the game) go faster or slower.  0.5 makes the game run at half-
-     * speed.
+     * 计时器速度的乘数，用于控制游戏运行的快慢。例如，0.5 表示游戏以半速运行。
      */
     public float timerSpeed = 1.0F;
-    /** How much time has elapsed since the last tick, in ticks (range: 0.0 - 1.0). */
+
+    /** 自上一次 tick 以来经过的时间（以 tick 为单位，范围：0.0 - 1.0） */
     public float elapsedPartialTicks;
-    /** The time reported by the system clock at the last sync, in milliseconds */
+
+    /** 上一次同步时，系统时钟报告的时间（以毫秒为单位） */
     private long lastSyncSysClock;
-    /** The time reported by the high-resolution clock at the last sync, in milliseconds */
+
+    /** 上一次同步时，高精度时钟报告的时间（以毫秒为单位） */
     private long lastSyncHRClock;
+
+    /** 用于计算时间同步调整的临时变量 */
     private long field_74285_i;
-    /** A ratio used to sync the high-resolution clock to the system clock, updated once per second */
+
+    /** 用于将高精度时钟与系统时钟同步的比率，每秒更新一次 */
     private double timeSyncAdjustment = 1.0D;
+
     private static final String __OBFID = "CL_00000658";
 
     public Timer(float p_i1018_1_)
@@ -42,7 +52,7 @@ public class Timer
     }
 
     /**
-     * Updates all fields of the Timer using the current time
+     * 使用当前时间更新计时器的所有字段
      */
     public void updateTimer()
     {

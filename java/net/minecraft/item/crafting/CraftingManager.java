@@ -276,71 +276,70 @@ public class CraftingManager
         this.recipes.add(new ShapelessRecipes(p_77596_1_, arraylist));
     }
 
+    /**
+     * 在合成台中查找匹配的合成配方
+     * @param craftingInventory 合成台物品栏对象
+     * @param world 当前世界对象
+     * @return 匹配的合成结果，若无匹配则返回null
+     */
     public ItemStack findMatchingRecipe(InventoryCrafting craftingInventory, World world) {
-        // 记录非空物品栈的数量
-        int nonEmptyStackCount = 0;
-        // 第一个非空物品栈
-        ItemStack firstItemStack = null;
-        // 第二个非空物品栈
-        ItemStack secondItemStack = null;
+        int nonEmptySlotsCount = 0;          // 非空物品槽计数器
+        ItemStack firstItemStack = null;     // 第一个非空物品堆
+        ItemStack secondItemStack = null;    // 第二个非空物品堆
 
-        // 遍历合成网格中的所有槽位
+        // 遍历合成台所有物品槽
         for (int slotIndex = 0; slotIndex < craftingInventory.getSizeInventory(); ++slotIndex) {
             ItemStack currentStack = craftingInventory.getStackInSlot(slotIndex);
 
             if (currentStack != null) {
-                // 如果这是第一个非空物品栈，则记录它
-                if (nonEmptyStackCount == 0) {
+                // 记录前两个非空物品堆
+                if (nonEmptySlotsCount == 0) {
                     firstItemStack = currentStack;
-                }
-                // 如果这是第二个非空物品栈，则记录它
-                else if (nonEmptyStackCount == 1) {
+                } else if (nonEmptySlotsCount == 1) {
                     secondItemStack = currentStack;
                 }
-
-                // 增加非空物品栈计数
-                ++nonEmptyStackCount;
+                nonEmptySlotsCount++;
             }
         }
 
-        // 检查是否仅有两个物品栈且它们可以修复
-        if (nonEmptyStackCount == 2 &&
-            firstItemStack.getItem() == secondItemStack.getItem() &&
-            firstItemStack.stackSize == 1 &&
-            secondItemStack.stackSize == 1 &&
-            firstItemStack.getItem().isRepairable())
-        {
-            Item item = firstItemStack.getItem();
-            // 计算第一个物品栈的剩余耐久度
-            int firstStackRemainingDamage = item.getMaxDamage() - firstItemStack.getItemDamageForDisplay();
-            // 计算第二个物品栈的剩余耐久度
-            int secondStackRemainingDamage = item.getMaxDamage() - secondItemStack.getItemDamageForDisplay();
-            // 计算修复后的新耐久度
-            int newRemainingDamage = firstStackRemainingDamage + secondStackRemainingDamage + item.getMaxDamage() * 5 / 100;
-            int newDamageValue = item.getMaxDamage() - newRemainingDamage;
+        // 处理两件可修复物品的特殊情况（例如两个受损的同类型工具）
+        if (nonEmptySlotsCount == 2
+                && firstItemStack.getItem() == secondItemStack.getItem()
+                && firstItemStack.stackSize == 1
+                && secondItemStack.stackSize == 1
+                && firstItemStack.getItem().isRepairable()) {
 
-            // 确保耐久度值不低于0
-            if (newDamageValue < 0)
-            {
-                newDamageValue = 0;
-            }
+            Item repairItem = firstItemStack.getItem();
 
-            // 返回修复后的物品
-            return new ItemStack(item, 1, newDamageValue);
+            // 计算两个物品的剩余耐久值
+            int firstItemDurability = repairItem.getMaxDamage() - firstItemStack.getItemDamageForDisplay();
+            int secondItemDurability = repairItem.getMaxDamage() - secondItemStack.getItemDamageForDisplay();
+
+            // 合并耐久值并增加5%的最大耐久（防止无限修复机制滥用）
+            int totalCombinedDurability = firstItemDurability + secondItemDurability
+                    + (int)(repairItem.getMaxDamage() * 0.05);
+
+            // 计算合成后的物品耐久值
+            int resultDurability = repairItem.getMaxDamage() - totalCombinedDurability;
+
+            // 耐久值不能小于0
+            resultDurability = Math.max(resultDurability, 0);
+
+            // 返回修复后的物品（保持堆叠数为1）
+            return new ItemStack(repairItem, 1, resultDurability);
         }
+        // 正常配方匹配流程
         else {
             // 遍历所有注册的合成配方
             for (int recipeIndex = 0; recipeIndex < this.recipes.size(); ++recipeIndex) {
-                IRecipe currentRecipe = (IRecipe)this.recipes.get(recipeIndex);
+                IRecipe recipe = this.recipes.get(recipeIndex);
 
-                // 如果当前配方匹配，则返回合成结果
-                if (currentRecipe.matches(craftingInventory, world)) {
-                    return currentRecipe.getCraftingResult(craftingInventory);
+                // 检查当前配方是否匹配合成台布局
+                if (recipe.matches(craftingInventory, world)) {
+                    return recipe.getCraftingResult(craftingInventory);
                 }
             }
-
-            // 如果没有匹配的配方，则返回null
-            return null;
+            return null;  // 没有找到匹配的配方
         }
     }
 

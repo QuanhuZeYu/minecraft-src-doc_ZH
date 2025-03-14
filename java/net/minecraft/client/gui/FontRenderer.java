@@ -640,16 +640,15 @@ public class FontRenderer implements IResourceManagerReloadListener {
     }
 
     /**
-     * Render string either left or right aligned depending on bidiFlag
+     *根据bidiflag渲染左右对齐的字符串
      */
-    private int renderStringAligned(String p_78274_1_, int p_78274_2_, int p_78274_3_, int p_78274_4_, int p_78274_5_,
-            boolean p_78274_6_) {
+    private int renderStringAligned(String string, int x, int y, int maxWidth, int color, boolean dropShadow) {
         if (this.bidiFlag) {
-            int i1 = this.getStringWidth(this.bidiReorder(p_78274_1_));
-            p_78274_2_ = p_78274_2_ + p_78274_4_ - i1;
+            int i1 = this.getStringWidth(this.bidiReorder(string));
+            x = x + maxWidth - i1;
         }
 
-        return this.renderString(p_78274_1_, p_78274_2_, p_78274_3_, p_78274_5_, p_78274_6_);
+        return this.renderString(string, x, y, color, dropShadow);
     }
 
     /**
@@ -876,16 +875,16 @@ public class FontRenderer implements IResourceManagerReloadListener {
     }
 
     /**
-     * Perform actual work of rendering a multi-line string with wordwrap and with
-     * darker drop shadow color if flag is
-     * set
+     *执行使用WordWrap渲染多行字符串的实际工作以及
+     *较深的滴影颜色如果是国旗
+     * 放
      */
-    private void renderSplitString(String str, int x, int y, int wrapWidth, boolean addShadow) {
-        List list = this.listFormattedStringToWidth(str, wrapWidth);
+    private void renderSplitString(String str, int x, int y, int maxWidth, boolean addShadow) {
+        List list = this.listFormattedStringToWidth(str, maxWidth);
 
         for (Iterator iterator = list.iterator(); iterator.hasNext(); y += this.FONT_HEIGHT) {
             String s1 = (String) iterator.next();
-            this.renderStringAligned(s1, x, y, wrapWidth, this.textColor, addShadow);
+            this.renderStringAligned(s1, x, y, maxWidth, this.textColor, addShadow);
         }
     }
 
